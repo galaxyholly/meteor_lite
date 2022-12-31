@@ -1,22 +1,43 @@
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QPushButton, QMainWindow, QLabel
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QWidget, QVBoxLayout
+import weatherGetter
 
 # needed for command line args
 import sys
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("MeteorLite")
+        self.setWindowTitle("My App")
 
-        widget = QLabel("Hello")
-        font = widget.font()
-        font.setPointSize(30)
-        widget.setFont(font)
-        widget.setAlignment(Qt.AlignHLeft | Qt.AlignVCenter)
+        self.label = QLabel()
+        self.label.setMargin(1)
 
-        self.setCentralWidget(widget)
+        self.input = QLineEdit()
+        self.input.textChanged.connect(self.label.setText)
+
+        layout = QVBoxLayout()
+
+        widgets = [
+            QLabel(f"Monday {mondayTemps}"),
+            QLabel(f"Tuesday {mondayTemps}"),
+            QLabel("Wednesday {mondayTemps}"),
+            QLabel("Thursday {mondayTemps}"),
+            QLabel("Friday {mondayTemps}"),
+            QLabel("Saturday {mondayTemps}"),
+            QLabel("Sunday {mondayTemps}")
+        ]
+
+        for wid in widgets:
+            layout.addWidget(wid)
+
+        container = QWidget()
+        container.setLayout(layout)
+
+        self.setCentralWidget(container)
+
         
         
 
