@@ -1,10 +1,10 @@
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QWidget, QVBoxLayout
-import weatherGetter
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QWidget, QVBoxLayout, QPushButton
+
 
 # needed for command line args
 import sys
-
+mondayTemps = "60deg"
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -23,11 +23,12 @@ class MainWindow(QMainWindow):
         widgets = [
             QLabel(f"Monday {mondayTemps}"),
             QLabel(f"Tuesday {mondayTemps}"),
-            QLabel("Wednesday {mondayTemps}"),
-            QLabel("Thursday {mondayTemps}"),
-            QLabel("Friday {mondayTemps}"),
-            QLabel("Saturday {mondayTemps}"),
-            QLabel("Sunday {mondayTemps}")
+            QLabel(f"Wednesday {mondayTemps}"),
+            QLabel(f"Thursday {mondayTemps}"),
+            QLabel(f"Friday {mondayTemps}"),
+            QLabel(f"Saturday {mondayTemps}"),
+            QLabel(f"Sunday {mondayTemps}"),
+            QPushButton("Self")
         ]
 
         for wid in widgets:
