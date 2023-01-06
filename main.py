@@ -1,5 +1,5 @@
 from PySide6.QtCore import QSize, Qt
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QWidget, QVBoxLayout, QPushButton
+from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QLineEdit, QWidget, QHBoxLayout, QPushButton, QGridLayout
 
 
 # needed for command line args
@@ -11,34 +11,20 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowTitle("My App")
+        self.setFixedSize(QSize(500, 300))
+        self.button = QPushButton("Press Me!")
+        self.button_click_count = 0
+        self.button.clicked.connect(self.the_button_was_clicked)
+        self.setCentralWidget(self.button)
 
-        self.label = QLabel()
-        self.label.setMargin(1)
-
-        self.input = QLineEdit()
-        self.input.textChanged.connect(self.label.setText)
-
-        layout = QVBoxLayout()
-
-        widgets = [
-            QLabel(f"Monday {mondayTemps}"),
-            QLabel(f"Tuesday {mondayTemps}"),
-            QLabel(f"Wednesday {mondayTemps}"),
-            QLabel(f"Thursday {mondayTemps}"),
-            QLabel(f"Friday {mondayTemps}"),
-            QLabel(f"Saturday {mondayTemps}"),
-            QLabel(f"Sunday {mondayTemps}"),
-            QPushButton("Self")
-        ]
-
-        for wid in widgets:
-            layout.addWidget(wid)
-
-        container = QWidget()
-        container.setLayout(layout)
-
-        self.setCentralWidget(container)
-
+    def the_button_was_clicked(self):
+        self.button_click_count += 1
+        self.button.setText(f"{self.button_click_count}")
+        self.setWindowTitle("My Oneshot App")
+    
+    def the_button_was_toggled(self, checked):
+        self.button_is_checked = checked
+        print(self.button_is_checked)
         
         
 

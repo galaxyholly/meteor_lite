@@ -86,3 +86,6 @@ ALSA lib seq.c:935:(snd_seq_open_noupdate) Unknown SEQ default
 1672771054780	Marionette	INFO	Stopped listening on port 38601
 console.warn: TopSitesFeed: Failed to fetch data from Contile server: NetworkError when attempting to fetch resource.
 Sandbox: Unexpected EOF, op 0 flags 00 path /proc/cpuinfo
+Exiting due to channel error.
+Exiting due to channel error.
+Exiting due to channel error.
