@@ -30,7 +30,6 @@ class User:
 # This function will run on startup in order to either determine a new IP or read it from file. If file is not present if will automatically
 # create a config file of its own.            
 def get_ip():
-    
     try:
         # begins with opening config file. If it exists and is blank, the first if statement is executed. It simply does a GET request,
         # then opens a writer for the text file and writes a formatted message containing the ipv4.
@@ -46,7 +45,6 @@ def get_ip():
                 ipv4 = configList[0].split(" ")[-1] 
                 print(f"IPv4 read from config.txt {ipv4}")
                 return ipv4
-
     except FileNotFoundError: #If file is not found it writes a new one.
         with open('config.txt', 'x') as writer:
             ipv4 = requests.get('https://api.ipify.org').content.decode('utf8')
