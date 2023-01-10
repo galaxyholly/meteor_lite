@@ -42,6 +42,8 @@ def sql_startup(con):
     cursorObj = con.cursor()
     cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
     con.commit()
+    cursorObj = con.cursor()
+    cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
 
 # This is the user class. Functionality of the app will be based off of information stored in this class. A single user is defined, 
 # the name and ip are taken and stored. This class will contain the methods used to obtain the coordinates associated with the user's ip.
@@ -62,9 +64,11 @@ class User:
         self.time = time
 
     def get_weather_data(self):
-        forecast = requests.get(f"https://api.weather.gov/gridpoints/{str(self.office)}/{str(self.gridX)},{str(self.gridY)}/forecast")
+        forecast = requests.get(f"https://api.weather.gov/gridpoints/{str(self.office)}/{str(self.gridX)},{str(self.gridY)}/")
         forecast_reader_info = json_converter(forecast.text)
         return forecast_reader_info
+
+    
 
 def json_converter(content):
     info = json.loads(content)
@@ -169,8 +173,24 @@ def main(): # This is a simulated main loop. This will actually go into the qt a
     # This may not be the best way to go about it and I can 1000% change my mind after more thinking.
     # Basically, I need to find a way to make one forecast entry per user entry and the forecast must match the table entry of that day.
     # Then, its all about async and calling the user.get_weather_data() to update the forecast whenever a new table entry is made.
-    print(user.get_weather_data()) 
+    test = user.get_weather_data()
+    print(sql_get(con))
+    
+    print(test)
+    # print(test['geometry'])
+    # print(test['properties']['elevation']['value'])
+    # print(test['properties']['periods'][0])
+    # print(test['properties']['periods'][1])
+    # print(test['properties']['periods'][2])
+    # print(test['properties']['periods'][3])
+    # print(test['properties']['periods'][4])
+    # print(test['properties']['periods'][5])
+    
+    # print(test['properties']['periods'][0])
+    
+    
 main()
+
 
 # Then, in the future, the idea is to add more widgets and data analysis and fun factoids. Then, the arduino code for meteorLite sensoring.
 # Then, write code that takes sensor data from arduino and uploads it to a server, which then gives info about ################

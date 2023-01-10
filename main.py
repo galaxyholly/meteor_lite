@@ -1,6 +1,6 @@
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QGridLayout
-from weatherGetter import User, get_ip
+# from weatherGetter import main, startup
 
 # needed for command line args
 import sys
@@ -94,10 +94,10 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.addWidget(TSLabel,1,5)
         tempsLabelLayout.addWidget(TSNLabel,1,6)
 
-        button = QPushButton("Update")
+        button = QPushButton("See Hourly")
         tempsLabelLayout.addWidget(button, 2,0,2,3)
 
-        button2 = QPushButton("WoW")
+        button2 = QPushButton("Arduino")
         tempsLabelLayout.addWidget(button2, 2,4,2,3)
 
         # button2.clicked.connect()
@@ -105,11 +105,14 @@ class MainWindow(QMainWindow):
         def updateTemps():
             print()
 
-    
+
         widget = QWidget()
         widget.setLayout(tempsLabelLayout)
         tempsLabelLayout.setContentsMargins(0,0,0,0)
         self.setCentralWidget(widget)
+
+# user = startup()
+
 
 # Only need one per application
 app = QApplication(sys.argv)
