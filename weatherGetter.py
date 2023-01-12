@@ -2,6 +2,7 @@ import requests
 import json
 import sqlite3
 import datetime
+import time
 
 con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information inthe db.
 
@@ -42,8 +43,14 @@ def sql_startup(con):
     cursorObj = con.cursor()
     cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
     con.commit()
+
+def sql_datadump(con, data_type):
     cursorObj = con.cursor()
-    cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
+    cursorObj.execute(f'create table if not exists {data_type}(id integer PRIMARY KEY, name text, unit text, date date, hour integer, value integer)')
+    con.commit()
+
+    # cursorObj = con.cursor()
+    # cursorObj.execute('create table if not exists data(id integer PRIMARY KEY, date text, 01 text,latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
 
 # This is the user class. Functionality of the app will be based off of information stored in this class. A single user is defined, 
 # the name and ip are taken and stored. This class will contain the methods used to obtain the coordinates associated with the user's ip.
@@ -146,7 +153,7 @@ def startup(): # Startup will check
             if date != user_values[8]: # if current date is not equal to db listed date, make a new entry with updated date.
                 print("if date != user_values[8]:")
                 next_id = user_values[0] + 1 # Since this is a new date, we need to denote a new access for forecast data. Id needs to be updated since a unique entry will be made.
-                new_date_entry = (next_id,user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7],date_time)
+                new_date_entry = (next_id,user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7], date, time)
                 sql_insert(con, new_date_entry)
                 return user
             print("made it")
@@ -164,32 +171,137 @@ def startup(): # Startup will check
     con.close()
 
 
+def extend_hours(obj):
+        dict24 = {}
+        current_hour = obj[0][0][11:13]
+        print(current_hour) # Gets current hour
+        hours_to_fill = abs(int(current_hour)-24-1)
+        i = 0 # if its hour 13 then there's 11 hour to fill.
+        name = current_hour # This starts and current hour and climbs to 24 so the dict keys follow the real hours.
+        extension_hours = obj[i][0].split("T")[2][0:-1]-1
+        while i < hours_to_fill: # i is the iterator for the total number of db entries for that period.
+            dict24[name] = [obj[i]] # the key of the current hour has the list item value.
+            for x in range(extension_hours): # This splits the date string to get just the number of hours skipped due to identical data.
+                extObjElt = [].append(obj[i]) # makes a new list with the current list item inside.
+                base = extObjElt[0][11:13] # gets hour number from element
+                new = (base + x) # x is the iteration number which is the extension number. new is the base hour plus the extension.
+                extObjElt[0][11:13] = new
+                dict24[i+x] = extObjElt # dictionary entry extension is the same data but with an hour added for each iteration.
+                i += 1
+        i += 1
+        return dict24
+
+def data_list(user_weather_data): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
+    data_types = [ # 26 dt's
+        'temperature',
+        'dewpoint',
+        'maxTemperature',
+        'minTemperature',
+        'relativeHumidity',
+        'apparentTemperature',
+        'heatIndex',
+        'skyCover',
+        'windDirection',
+        'windSpeed',
+        'windGust',
+        'weather',
+        'probabilityOfPrecipitation',
+        'quantitativePrecipitation',
+        'iceAccumulation',
+        'snowfallAmount',
+        'ceilingHeight',
+        'visibility',
+        'transportWindSpeed',
+        'transportWindDirection',
+        'mixingHeight',
+        'hainesIndex',
+        'lightningActivityLevel',
+        'twentyFootWindSpeed',
+        'twentyFootWindDirection',
+        'grasslandFireDangerIndex'
+    ]
+
+    for data_type in data_types:
+        data_by_type = user_weather_data['properties'][data_type]['values'] # grabs all of the datetime, value lists
+        data_unit = user_weather_data['properties'][data_type]['uom'].split(':')[1] # gets the unit for the values
+        listLength = len(data_by_type)
+        data_time = [data_by_type[i]["validTime"] for i in range(listLength)]
+        data_values = [str(data_by_type[i]['value'])[0:4] for i in range(listLength)]
+        data_pre_sort = [[data_time[i], data_values[i]+f"{data_unit}"] for i in range(listLength)] #List of lists
+        return data_pre_sort
+
+def sort_24(obj): # This is here to split the week long data sets into days for further processing in extend_hours()
+    x = 0
+    placeholderList = []
+    daysDict = {}
+    for i in range(len(obj)):
+        if i + 1 < len(obj):
+            if obj[i][0] == obj[i+1][0]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
+                placeholderList.append([x, obj[i][0], obj[i][1],obj[i][2]]) 
+            elif obj[i][0] != obj[i+1][0]:
+                placeholderList.append([x, obj[i][0], obj[i][1], obj[i][2]]) # each element gets appended to the empty list until you
+                daysDict[x] = placeholderList # have all the elements of a single day, which the list gets added to a dict keyed for that day
+                placeholderList.clear() # list is cleared to start again.
+                x += 1
+    return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
+                
+
+
+
 
 def main(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = startup()
+    megalist = user.get_weather_data()
+    boom = data_list(megalist)
+    for element in boom:
+        sorted_by_day = sort_24(element)
+        for element in sorted_by_day:
+            sql_data_dump(element)
+main()       
+
+            
+
+    
+
+
+   
+
+    
+    # mtlist = []
+    # x = 0
+    # for i in range(listLength):
+    #     if i + 1 < listLength:
+    #         if dateTemps[i][0] == dateTemps[i+1][0]:
+    #             mtlist.append([x, dateTemps[i][0], dateTemps[i][1],dateTemps[i][2]])
+    #         elif dateTemps[i][0] != dateTemps[i+1][0]:
+    #             mtlist.append([x, dateTemps[i][0], dateTemps[i][1], dateTemps[i][2]])
+    #             x += 1
+    # # print(mtlist)
+     
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     # after calling startup the user object will exist within the main loop and its methods can be called.
     # next I need to parse the weather data function into a usable set of variables, set up a new function to make a table for it
     # then make every weather call compare dates with the last user db table entry. If there is not an equal number of entries on both sides, it makes a new one.
     # This may not be the best way to go about it and I can 1000% change my mind after more thinking.
     # Basically, I need to find a way to make one forecast entry per user entry and the forecast must match the table entry of that day.
     # Then, its all about async and calling the user.get_weather_data() to update the forecast whenever a new table entry is made.
-    test = user.get_weather_data()
-    print(sql_get(con))
     
-    print(test)
-    # print(test['geometry'])
-    # print(test['properties']['elevation']['value'])
-    # print(test['properties']['periods'][0])
-    # print(test['properties']['periods'][1])
-    # print(test['properties']['periods'][2])
-    # print(test['properties']['periods'][3])
-    # print(test['properties']['periods'][4])
-    # print(test['properties']['periods'][5])
-    
-    # print(test['properties']['periods'][0])
-    
-    
-main()
 
 
 # Then, in the future, the idea is to add more widgets and data analysis and fun factoids. Then, the arduino code for meteorLite sensoring.
