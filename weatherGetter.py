@@ -41,13 +41,14 @@ def sql_get_last(con):
 
 def sql_startup(con):
     cursorObj = con.cursor()
-    cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
+    cursorObj.execute('create table if not exists user(name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
     con.commit()
 
-def sql_datadump(con, data_type):
+def sql_datadump(con, data_type, user_data):
     cursorObj = con.cursor()
-    cursorObj.execute(f'create table if not exists {data_type}(id integer PRIMARY KEY, name text, unit text, date date, hour integer, value integer)')
+    cursorObj.execute(f'create table if not exists {data_type}(name text, unit text, date date,value integer)')
     con.commit()
+    cursorObj.execute(f'INSERT INTO {data_type}(name, unit, date, value) VALUES(?, ?, ?, ?,)', user_data)
 
     # cursorObj = con.cursor()
     # cursorObj.execute('create table if not exists data(id integer PRIMARY KEY, date text, 01 text,latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
@@ -173,26 +174,61 @@ def startup(): # Startup will check
 
 def extend_hours(obj):
         dict24 = {}
-        current_hour = obj[0][0][11:13]
-        print(current_hour) # Gets current hour
-        hours_to_fill = abs(int(current_hour)-24-1)
-        i = 0 # if its hour 13 then there's 11 hour to fill.
-        name = current_hour # This starts and current hour and climbs to 24 so the dict keys follow the real hours.
-        extension_hours = obj[i][0].split("T")[2][0:-1]-1
-        while i < hours_to_fill: # i is the iterator for the total number of db entries for that period.
-            dict24[name] = [obj[i]] # the key of the current hour has the list item value.
-            for x in range(extension_hours): # This splits the date string to get just the number of hours skipped due to identical data.
-                extObjElt = [].append(obj[i]) # makes a new list with the current list item inside.
-                base = extObjElt[0][11:13] # gets hour number from element
-                new = (base + x) # x is the iteration number which is the extension number. new is the base hour plus the extension.
-                extObjElt[0][11:13] = new
-                dict24[i+x] = extObjElt # dictionary entry extension is the same data but with an hour added for each iteration.
+        hours_to_fill = abs(int(obj[0][2][11:13])-24+1) # gets number of total entries from this day to have at the end.
+        i = 0
+        try:
+            while i < hours_to_fill: # i is the it0erator for the total number of db entries for that period.
+                current_hour = obj[i][2][11:13] # Gets the hour of the data point we're processing.
+                extension_hours = int(obj[i][2].split("T")[2][0:-1])-1# Gets the PT##H ## from the data point we're operating on.
+                dict24[current_hour] = obj[i] # makes a dict key-value pair. Key = hour of dp value = the dp
+                current_obj = obj[i]
+                for x in range(int(extension_hours)): # iterates once for the number of hours to be extended.
+                    mt_list = [] # 
+                    mt_list.append(current_obj) # = [[x,y,z]]
+                    base_hour = mt_list[0][2][11:13] # gets hour number from element
+                    print(str(base_hour) + "Base Hour")
+                    hour_post_extension = (int(base_hour) + (1)) # x is the iteration number which is the extension number. new is the base hour plus the extension.
+                    print(str(hour_post_extension) + "hour-post-extension")
+                    mt_list[0][2] = mt_list[0][2][0:11] + str(hour_post_extension) + mt_list[0][2][13:28] + (str(extension_hours-x+1) + "H")
+                    dict24[hour_post_extension] = mt_list[0] # dictionary entry extension is the same data but with an hour added for each iteration.
                 i += 1
-        i += 1
-        return dict24
+            return dict24
+        except IndexError:
+            print("IndexError")
+            return dict24
+            
+                    
+               
+def data_list(user_weather_data, data_type): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
+    data_by_type = user_weather_data['properties'][data_type]['values'] # grabs all of the datetime, value lists
+    try: 
+        data_unit = user_weather_data['properties'][data_type]['uom'].split(':')[1] # gets the unit for the values
+    except KeyError:
+        data_unit = None
+    listLength = len(data_by_type)
+    data_time = [data_by_type[i]["validTime"] for i in range(listLength)]
+    data_values = [str(data_by_type[i]['value'])[0:4] for i in range(listLength)]
+    data_pre_sort = [[data_type, data_unit, data_time[i], data_values[i]] for i in range(listLength)] #List of lists [name, unit, date, value]
+    return data_pre_sort
 
-def data_list(user_weather_data): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
-    data_types = [ # 26 dt's
+def sort_24(obj): # This is here to split the week long data sets into days for further processing in extend_hours()
+    x = 0
+    placeholderList = []
+    daysDict = {}
+    for i in range(len(obj)-1):
+        if obj[i][2][9:10] == obj[i+1][2][9:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
+            print("if")
+            placeholderList.append([obj[i][0], obj[i][1],obj[i][2], obj[i][3]])
+        else:
+            print("else")
+            placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]]) # each element gets appended to the empty list until you
+            daysDict[str(x)] = [elt for elt in placeholderList] # have all the elements of a single day, which the list gets added to a dict keyed for that day
+            placeholderList.clear() # list is cleared to start again.
+            x += 1
+    return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
+                
+
+data_types = [ # 26 dt's
         'temperature',
         'dewpoint',
         'maxTemperature',
@@ -221,79 +257,15 @@ def data_list(user_weather_data): # returns the lists of value pairs for each da
         'grasslandFireDangerIndex'
     ]
 
-    for data_type in data_types:
-        data_by_type = user_weather_data['properties'][data_type]['values'] # grabs all of the datetime, value lists
-        data_unit = user_weather_data['properties'][data_type]['uom'].split(':')[1] # gets the unit for the values
-        listLength = len(data_by_type)
-        data_time = [data_by_type[i]["validTime"] for i in range(listLength)]
-        data_values = [str(data_by_type[i]['value'])[0:4] for i in range(listLength)]
-        data_pre_sort = [[data_time[i], data_values[i]+f"{data_unit}"] for i in range(listLength)] #List of lists
-        return data_pre_sort
-
-def sort_24(obj): # This is here to split the week long data sets into days for further processing in extend_hours()
-    x = 0
-    placeholderList = []
-    daysDict = {}
-    for i in range(len(obj)):
-        if i + 1 < len(obj):
-            if obj[i][0] == obj[i+1][0]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
-                placeholderList.append([x, obj[i][0], obj[i][1],obj[i][2]]) 
-            elif obj[i][0] != obj[i+1][0]:
-                placeholderList.append([x, obj[i][0], obj[i][1], obj[i][2]]) # each element gets appended to the empty list until you
-                daysDict[x] = placeholderList # have all the elements of a single day, which the list gets added to a dict keyed for that day
-                placeholderList.clear() # list is cleared to start again.
-                x += 1
-    return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
-                
-
-
-
 
 def main(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = startup()
-    megalist = user.get_weather_data()
-    boom = data_list(megalist)
-    for element in boom:
-        sorted_by_day = sort_24(element)
-        for element in sorted_by_day:
-            sql_data_dump(element)
+    data_by_type = data_list(user.get_weather_data(), 'temperature') 
+    data_dict = sort_24(data_by_type) # sort_24 is being passed a LIST OF LISTS 
+    print(str(data_dict['0'])+ "\n")
+    test_extend = extend_hours(data_dict['1'])
+    print(test_extend)
 main()       
-
-            
-
-    
-
-
-   
-
-    
-    # mtlist = []
-    # x = 0
-    # for i in range(listLength):
-    #     if i + 1 < listLength:
-    #         if dateTemps[i][0] == dateTemps[i+1][0]:
-    #             mtlist.append([x, dateTemps[i][0], dateTemps[i][1],dateTemps[i][2]])
-    #         elif dateTemps[i][0] != dateTemps[i+1][0]:
-    #             mtlist.append([x, dateTemps[i][0], dateTemps[i][1], dateTemps[i][2]])
-    #             x += 1
-    # # print(mtlist)
-     
-            
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     # after calling startup the user object will exist within the main loop and its methods can be called.
     # next I need to parse the weather data function into a usable set of variables, set up a new function to make a table for it
