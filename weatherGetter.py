@@ -8,7 +8,7 @@ con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Ne
 
 def sql_table(con):
     cursorObj = con.cursor()
-    cursorObj.execute("CREATE TABLE user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text")
+    cursorObj.execute("CREATE TABLE if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text")
     con.commit()
 
 def sql_insert(con, userData):
@@ -41,14 +41,22 @@ def sql_get_last(con):
 
 def sql_startup(con):
     cursorObj = con.cursor()
-    cursorObj.execute('create table if not exists user(name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
+    cursorObj.execute('create table if not exists user(id integer PRIMARY KEY, name text, ipv4 text, latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
     con.commit()
 
 def sql_datadump(con, data_type, user_data):
     cursorObj = con.cursor()
-    cursorObj.execute(f'create table if not exists {data_type}(name text, unit text, date date,value integer)')
+    cursorObj.execute(f'create table if not exists {data_type}(name text, unit text, date date, value integer)')
     con.commit()
-    cursorObj.execute(f'INSERT INTO {data_type}(name, unit, date, value) VALUES(?, ?, ?, ?,)', user_data)
+    cursorObj.execute(f'INSERT INTO {data_type}(name, unit, date, value) VALUES(?, ?, ?, ?)', user_data)
+    con.commit()
+
+def sql_get_test(con, table):
+    cursorObj = con.cursor()
+    cursorObj.execute(f'SELECT * from {table}')
+    rows = cursorObj.fetchall()
+    for row in rows:
+        print(row)
 
     # cursorObj = con.cursor()
     # cursorObj.execute('create table if not exists data(id integer PRIMARY KEY, date text, 01 text,latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
@@ -181,24 +189,25 @@ def extend_hours(obj):
                 current_hour = obj[i][2][11:13] # Gets the hour of the data point we're processing.
                 extension_hours = int(obj[i][2].split("T")[2][0:-1])-1# Gets the PT##H ## from the data point we're operating on.
                 dict24[current_hour] = obj[i] # makes a dict key-value pair. Key = hour of dp value = the dp
-                current_obj = obj[i]
-                for x in range(int(extension_hours)): # iterates once for the number of hours to be extended.
-                    mt_list = [] # 
+                current_obj = dict24[current_hour].copy()
+                for x in range(extension_hours): # iterates once for the number of hours to be extended.
+                    mt_list = []
+                    mt_list.clear()
                     mt_list.append(current_obj) # = [[x,y,z]]
                     base_hour = mt_list[0][2][11:13] # gets hour number from element
-                    print(str(base_hour) + "Base Hour")
                     hour_post_extension = (int(base_hour) + (1)) # x is the iteration number which is the extension number. new is the base hour plus the extension.
-                    print(str(hour_post_extension) + "hour-post-extension")
-                    mt_list[0][2] = mt_list[0][2][0:11] + str(hour_post_extension) + mt_list[0][2][13:28] + (str(extension_hours-x+1) + "H")
-                    dict24[hour_post_extension] = mt_list[0] # dictionary entry extension is the same data but with an hour added for each iteration.
+                    if len(str(hour_post_extension)) == 1:
+                        hour_post_extension = "0" + str(hour_post_extension)
+                        mt_list[0][2] = mt_list[0][2][0:11] + str(hour_post_extension) + mt_list[0][2][13:28] + (str(extension_hours-x) + "H")
+                        dict24[str(hour_post_extension)] = mt_list[0].copy() # dictionary entry extension is the same data but with an hour added for each iteration.
+                    mt_list[0][2] = mt_list[0][2][0:11] + str(hour_post_extension) + mt_list[0][2][13:28] + (str(extension_hours-x) + "H")
+                    dict24[str(hour_post_extension)] = mt_list[0].copy() # dictionary entry extension is the same data but with an hour added for each iteration.
                 i += 1
             return dict24
         except IndexError:
             print("IndexError")
             return dict24
             
-                    
-               
 def data_list(user_weather_data, data_type): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
     data_by_type = user_weather_data['properties'][data_type]['values'] # grabs all of the datetime, value lists
     try: 
@@ -217,10 +226,8 @@ def sort_24(obj): # This is here to split the week long data sets into days for 
     daysDict = {}
     for i in range(len(obj)-1):
         if obj[i][2][9:10] == obj[i+1][2][9:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
-            print("if")
             placeholderList.append([obj[i][0], obj[i][1],obj[i][2], obj[i][3]])
         else:
-            print("else")
             placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]]) # each element gets appended to the empty list until you
             daysDict[str(x)] = [elt for elt in placeholderList] # have all the elements of a single day, which the list gets added to a dict keyed for that day
             placeholderList.clear() # list is cleared to start again.
@@ -257,12 +264,40 @@ data_types = [ # 26 dt's
         'grasslandFireDangerIndex'
     ]
 
-
 def main(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
+    
     user = startup()
-    data_by_type = data_list(user.get_weather_data(), 'temperature') 
-    data_dict = sort_24(data_by_type) # sort_24 is being passed a LIST OF LISTS 
+    weather_data = user.get_weather_data()
+
+    data_standard_format = data_list(weather_data, 'dewpoint') #Sends the user data to the formatting function data_list.
+    print(data_standard_format)
+    data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
     print(str(data_dict['0'])+ "\n")
+    print(len(data_dict['0']))
+    test_extend = extend_hours(data_dict['0'])
+    print(test_extend)
+    
+    # for type in data_types:
+    #     data_standard_format = data_list(weather_data, type) # gets one type of data into table ready format
+    #     data_dict = sort_24(data_standard_format) # sorts that data by day (7 total starting with 0) in a dict
+    #     for i in range(6): # for each day 
+    #         test_extend =  extend_hours(data_dict[str(i)]) # get the dictionary for each days dp's
+    #         print(test_extend)
+    #         hour = abs(24-len(test_extend))
+    #         for i in range(hour, 24): # goes through each hour in dict
+    #             if len(str(i)) == 1:
+    #                 i = "0" + str(i) # Just says if i is one digit then turn i into a 2 digit number with 0 in front for the dict.                
+    #                 sql_datadump(con, type, test_extend[str(i)]) # Takes each hour and inputs it into its respective db table in order.
+    #             else:
+    #                 sql_datadump(con, type, test_extend[str(i)]) 
+    
+    sql_get_test(con, 'dewpoint')    
+
+    data_standard_format = data_list(weather_data, 'temperature') #Sends the user data to the formatting function data_list./
+    data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
+
+    print(str(data_dict['1'])+ "\n")
+    print(len(data_dict['1']))
     test_extend = extend_hours(data_dict['1'])
     print(test_extend)
 main()       
