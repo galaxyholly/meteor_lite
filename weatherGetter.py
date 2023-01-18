@@ -3,6 +3,46 @@ import json
 import sqlite3
 import datetime
 import time
+from timeit import default_timer as timer
+
+data_types = [ # 26 dt's
+        'temperature',
+        'dewpoint',
+        'maxTemperature',
+        'minTemperature',
+        'relativeHumidity',
+        'apparentTemperature',
+        'heatIndex',
+        'skyCover',
+        'windDirection',
+        'windSpeed',
+        'windGust',
+        'weather',
+        'probabilityOfPrecipitation',
+        'quantitativePrecipitation',
+        'iceAccumulation',
+        'snowfallAmount',
+        'ceilingHeight',
+        'visibility',
+        'transportWindSpeed',
+        'transportWindDirection',
+        'mixingHeight',
+        'hainesIndex',
+        'lightningActivityLevel',
+        'twentyFootWindSpeed',
+        'twentyFootWindDirection',
+        'grasslandFireDangerIndex'
+    ]
+
+def functimer(func): # This is just a decorator function I can use to measure a functions runtime.
+    def wrapper(*args, **kwargs):
+        start = timer()
+        obj = func(*args)
+        end = timer()
+        time_elapsed = end - start
+        print(str(time_elapsed) + " - Time Elapsed")
+        return obj
+    return wrapper
 
 con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information inthe db.
 
@@ -58,6 +98,50 @@ def sql_get_test(con, table):
     for row in rows:
         print(row)
 
+
+def sql_make_unformatted_tables(con): # This will be run on startup. Creates time loss on very first time its run, after that it takes no time.
+    cursorObj = con.cursor()
+    for data_type in data_types:
+        cursorObj.execute(f'create table if not exists {data_type}(validTime text, value text)')
+        con.commit()
+        
+@functimer
+def sql_unformatted_test(con):
+    cursorObj = con.cursor()
+    cursorObj.execute(f'SELECT * from dewpoint')
+    rows = cursorObj.fetchall()
+    for row in rows:
+        print(row)
+
+def sql_unformatted_by_date(con): # This will be the function we use to get data for x days.
+    cursorObj = con.cursor()
+    cursorObj.execute("SELECT * from temperature where validTime < date('now','7 days')")
+    rows = cursorObj.fetchall()
+    rowList = [row for row in rows]
+    return rowList
+
+@functimer
+def sql_unformatted_add_test(con, weather_data): # This function will add in all the data from the user.get_weather_data() method.
+    cursorObj = con.cursor()
+    for data_type in data_types:
+        for i in range(len(weather_data['properties'][data_type]['values'])):
+            data_point = [str(weather_data['properties'][data_type]['values'][i]['validTime']), str(weather_data['properties'][data_type]['values'][i]['value'])]  
+            cursorObj.execute(f'INSERT INTO {data_type}(validTime, value) VALUES(?, ?)', data_point)
+    con.commit()
+
+def sql_unformatted_delete(con):
+    for data_type in data_types:
+        cursorObj = con.cursor()
+        cursorObj.execute(f'DELETE from {data_type}')
+    con.commit()
+
+def sql_unformatted_drop_table(con):
+    for data_type in data_types:
+        cursorObj = con.cursor()
+        cursorObj.execute(f'DROP TABLE {data_type};')
+    con.commit()
+        
+
     # cursorObj = con.cursor()
     # cursorObj.execute('create table if not exists data(id integer PRIMARY KEY, date text, 01 text,latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
 
@@ -79,12 +163,11 @@ class User:
         self.date = date
         self.time = time
 
+    @functimer
     def get_weather_data(self):
         forecast = requests.get(f"https://api.weather.gov/gridpoints/{str(self.office)}/{str(self.gridX)},{str(self.gridY)}/")
         forecast_reader_info = json_converter(forecast.text)
         return forecast_reader_info
-
-    
 
 def json_converter(content):
     info = json.loads(content)
@@ -123,6 +206,7 @@ def get_ip_coords_points(): # Request as much as needed.
     ip_coords_points= [str(ip_coords[0]), ip_coords[1], ip_coords[2], gridX, gridY, office]
     return ip_coords_points
 
+@functimer
 def get_date_time(ip):
     date_time_response = requests.get(f"https://timeapi.io/api/Time/current/ip?ipAddress={ip}")
     date_time_info = json_converter(date_time_response.text)
@@ -179,7 +263,6 @@ def startup(): # Startup will check
             # analysis based on location most frequented and such.
     con.close()
 
-
 def extend_hours(obj):
         dict24 = {}
         hours_to_fill = abs(int(obj[0][2][11:13])-24+1) # gets number of total entries from this day to have at the end.
@@ -207,19 +290,16 @@ def extend_hours(obj):
         except IndexError:
             print("IndexError")
             return dict24
-            
-def data_list(user_weather_data, data_type): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
-    data_by_type = user_weather_data['properties'][data_type]['values'] # grabs all of the datetime, value lists
-    try: 
-        data_unit = user_weather_data['properties'][data_type]['uom'].split(':')[1] # gets the unit for the values
-    except KeyError:
-        data_unit = None
-    listLength = len(data_by_type)
-    data_time = [data_by_type[i]["validTime"] for i in range(listLength)]
-    data_values = [str(data_by_type[i]['value'])[0:4] for i in range(listLength)]
+
+@functimer            
+def data_list(user_weather_data, data_type, data_unit): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
+    listLength = len(user_weather_data)
+    data_time = [user_weather_data[i][0] for i in range(listLength)]
+    data_values = [str(user_weather_data[i][1])[0:4] for i in range(listLength)]
     data_pre_sort = [[data_type, data_unit, data_time[i], data_values[i]] for i in range(listLength)] #List of lists [name, unit, date, value]
     return data_pre_sort
 
+@functimer
 def sort_24(obj): # This is here to split the week long data sets into days for further processing in extend_hours()
     x = 0
     placeholderList = []
@@ -233,49 +313,33 @@ def sort_24(obj): # This is here to split the week long data sets into days for 
             placeholderList.clear() # list is cleared to start again.
             x += 1
     return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
-                
 
-data_types = [ # 26 dt's
-        'temperature',
-        'dewpoint',
-        'maxTemperature',
-        'minTemperature',
-        'relativeHumidity',
-        'apparentTemperature',
-        'heatIndex',
-        'skyCover',
-        'windDirection',
-        'windSpeed',
-        'windGust',
-        'weather',
-        'probabilityOfPrecipitation',
-        'quantitativePrecipitation',
-        'iceAccumulation',
-        'snowfallAmount',
-        'ceilingHeight',
-        'visibility',
-        'transportWindSpeed',
-        'transportWindDirection',
-        'mixingHeight',
-        'hainesIndex',
-        'lightningActivityLevel',
-        'twentyFootWindSpeed',
-        'twentyFootWindDirection',
-        'grasslandFireDangerIndex'
-    ]
-
+def filter_latest(raw_data): # This will get the time data
+    print("placeholder")
 def main(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
-    
-    user = startup()
-    weather_data = user.get_weather_data()
+    # user = startup()
+    # weather_data = user.get_weather_data()
+    # sql_unformatted_drop_table(con)
+    # sql_make_unformatted_tables(con)
+    # sql_unformatted_add_test(con, weather_data)
+    # sql_unformatted_test(con)
+    sql_unformatted_by_date(con) # Grabs list of lists from date range specified.
 
-    data_standard_format = data_list(weather_data, 'dewpoint') #Sends the user data to the formatting function data_list.
-    print(data_standard_format)
-    data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
-    print(str(data_dict['0'])+ "\n")
-    print(len(data_dict['0']))
-    test_extend = extend_hours(data_dict['0'])
-    print(test_extend)
+    
+    # sql_unformatted_delete(con)
+    # sql_unformatted_test(con)
+
+    # data_by_type = weather_data['properties']['dewpoint']# ['values']
+    # print(data_by_type)
+
+    
+    # data_standard_format = data_list(weather_data, 'dewpoint') #Sends the user data to the formatting function data_list.
+    # print(data_standard_format)
+    # data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
+    # print(str(data_dict['0'])+ "\n")
+    # print(len(data_dict['0']))
+    # test_extend = extend_hours(data_dict['0'])
+    # print(test_extend)
     
     # for type in data_types:
     #     data_standard_format = data_list(weather_data, type) # gets one type of data into table ready format
@@ -291,15 +355,21 @@ def main(): # This is a simulated main loop. This will actually go into the qt a
     #             else:
     #                 sql_datadump(con, type, test_extend[str(i)]) 
     
-    sql_get_test(con, 'dewpoint')    
+    # sql_get_test(con, 'temperature') 
+    # sql_unformatted_add_test(con, [12, 3])
+    # sql_unformatted_test(con)  
 
-    data_standard_format = data_list(weather_data, 'temperature') #Sends the user data to the formatting function data_list./
-    data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
+    # sql_unformatted_delete(con)
+    # sql_unformatted_test(con)
 
-    print(str(data_dict['1'])+ "\n")
-    print(len(data_dict['1']))
-    test_extend = extend_hours(data_dict['1'])
-    print(test_extend)
+
+    # data_standard_format = data_list(weather_data, 'temperature') #Sends the user data to the formatting function data_list./
+    # data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
+
+    # print(str(data_dict['1'])+ "\n")
+    # print(len(data_dict['1']))
+    # test_extend = extend_hours(data_dict['1'])
+    # print(test_extend)
 main()       
 
     # after calling startup the user object will exist within the main loop and its methods can be called.
