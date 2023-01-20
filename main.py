@@ -1,23 +1,31 @@
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QGridLayout
-# from weatherGetter import main, startup
+from weatherGetter import *
 
 # needed for command line args
 import sys
+startup()
+data_standard_format = data_list(sql_unformatted_by_date(con), data_types[0], "degC") #Sends the user data to the formatting function data_list.
+data_by_day = sort_24(data_standard_format) # Returns a dictionary for information by day with keys 0-6 (str)
+print(data_by_day)
+mon_high_num = str(data_by_day["3"][0][3])
+print(mon_high_num)
 
-mon_high = "1"
+
+
+mon_high = mon_high_num
 mon_low = "1"
-tues_high = "1"
+tues_high = data_by_day["4"][0][3]
 tues_low = "1"
-wed_high = "1"
+wed_high = data_by_day["5"][0][3]
 wed_low = "1"
-thurs_high = "1"
+thurs_high = data_by_day["6"][0][3]
 thurs_low = "1"
-fri_high = "1"
+fri_high = data_by_day["0"][0][3]
 fri_low = "1"
-sat_high = "1"
+sat_high = data_by_day["1"][0][3]
 sat_low = "1"
-sun_high = "1"
+sun_high = data_by_day["2"][0][3]
 sun_low = "1"
 
 class MainWindow(QMainWindow):
@@ -28,7 +36,7 @@ class MainWindow(QMainWindow):
         
 
         tempsLabelLayout = QGridLayout()
-        self.setFixedSize(350, 100)
+        self.setFixedSize(400, 100)
         
         MLabel = QLabel("M")
         TLabel = QLabel("T")
@@ -80,12 +88,6 @@ class MainWindow(QMainWindow):
         tempLabelsAlign = [label.setAlignment(QtCore.Qt.AlignCenter) for label in temps]
         tempLabelsAlign
 
-        tempLabelsSize = [label.setFixedSize(25,25) for label in temps]
-        tempLabelsSize
-
-        tempsSize = [label.setFixedSize(25,25) for label in tempLabels]
-        tempsSize
-
         tempsLabelLayout.addWidget(TMLabel,1,0)
         tempsLabelLayout.addWidget(TTLabel,1,1)
         tempsLabelLayout.addWidget(TWLabel,1,2)
@@ -102,16 +104,12 @@ class MainWindow(QMainWindow):
 
         # button2.clicked.connect()
 
-        def updateTemps():
-            print()
-
-
         widget = QWidget()
         widget.setLayout(tempsLabelLayout)
         tempsLabelLayout.setContentsMargins(0,0,0,0)
         self.setCentralWidget(widget)
 
-# user = startup()
+
 
 
 # Only need one per application

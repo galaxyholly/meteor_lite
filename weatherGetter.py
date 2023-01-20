@@ -2,8 +2,9 @@ import requests
 import json
 import sqlite3
 import datetime
-import time
 from timeit import default_timer as timer
+from datetime import datetime
+
 
 data_types = [ # 26 dt's
         'temperature',
@@ -108,14 +109,14 @@ def sql_make_unformatted_tables(con): # This will be run on startup. Creates tim
 @functimer
 def sql_unformatted_test(con):
     cursorObj = con.cursor()
-    cursorObj.execute(f'SELECT * from dewpoint')
+    cursorObj.execute(f'SELECT * from temperature')
     rows = cursorObj.fetchall()
     for row in rows:
         print(row)
 
 def sql_unformatted_by_date(con): # This will be the function we use to get data for x days.
     cursorObj = con.cursor()
-    cursorObj.execute("SELECT * from temperature where validTime < date('now','7 days')")
+    cursorObj.execute("SELECT * from maxTemperature where validTime < date('now','8 days')")
     rows = cursorObj.fetchall()
     rowList = [row for row in rows]
     return rowList
@@ -206,28 +207,47 @@ def get_ip_coords_points(): # Request as much as needed.
     ip_coords_points= [str(ip_coords[0]), ip_coords[1], ip_coords[2], gridX, gridY, office]
     return ip_coords_points
 
+# @functimer
+# def get_date_time(ip):
+#     date_time_response = requests.get(f"https://timeapi.io/api/Time/current/ip?ipAddress={ip}")
+#     date_time_info = json_converter(date_time_response.text)
+#     year = date_time_info["year"]
+#     month = date_time_info["month"]
+#     day = date_time_info["day"]
+#     hour = date_time_info["hour"]
+#     minute = date_time_info["minute"]
+#     second = date_time_info["seconds"]
+#     date = (f"{year}-{month}-{day}")
+#     time = (f"{hour}:{minute}:{second}")
+#     return date, time
+
+
 @functimer
-def get_date_time(ip):
-    date_time_response = requests.get(f"https://timeapi.io/api/Time/current/ip?ipAddress={ip}")
-    date_time_info = json_converter(date_time_response.text)
-    year = date_time_info["year"]
-    month = date_time_info["month"]
-    day = date_time_info["day"]
-    hour = date_time_info["hour"]
-    minute = date_time_info["minute"]
-    second = date_time_info["seconds"]
+def date_time_2():
+    weekday_map = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    time_now = datetime.now()
+    year = time_now.year
+    month = time_now.month
+    day = time_now.day
+    hour = time_now.hour
+    minute = time_now.minute
+    second = time_now.second
     date = (f"{year}-{month}-{day}")
     time = (f"{hour}:{minute}:{second}")
-    return date, time
-    
-def startup(): # Startup will check
+    weekday = time_now.weekday()
+    weekday_name = weekday_map[weekday]
+    return date, time, weekday_name
+
+
+
+def user_startup(): # Startup will check
     con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information in the db.
     sql_startup(con) # This function makes a table only if it does not already exist.
     if sql_get_last(con) == None:
         print("if") # If no db entry exists, then no user object data exists. That data and user object is initialized and documented in db.
         ip, latitude, longitude, gridX, gridY, office = get_ip_coords_points()
         name = "user"
-        date, time = get_date_time(ip)
+        date, time, weekday = date_time_2()
         user_values = (1, name, ip, latitude, longitude, gridX, gridY, office, date, time)
         sql_insert(con, user_values)
         user_values = sql_get_last(con)
@@ -241,7 +261,7 @@ def startup(): # Startup will check
         if current_ip == user_values[2]: # comparing the current ip to the last db entries ip. If ==, user object is init with the previous db info. 
             print("if current_ip == user_values[2]:")
             user = User(user_values[0],user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7], user_values[8], user_values[9])
-            date, time = get_date_time(current_ip)
+            date, time, weekday = date_time_2()
             # print(user.get_weather_data()) this is here for diagnostic purposes
             if date != user_values[8]: # if current date is not equal to db listed date, make a new entry with updated date.
                 print("if date != user_values[8]:")
@@ -255,13 +275,18 @@ def startup(): # Startup will check
             print("# If current ip is not last db entry ip, make a new entry.")
             ip, latitude, longitude, gridX, gridY, office = get_ip_coords_points()
             name = "user"
-            date, time = get_date_time(ip)
+            date, time, weekday = date_time_2()
             next_id = user_values[0] + 1
             user_values = (next_id, name, ip, latitude, longitude, gridX, gridY, office, date, time)
             sql_insert(con, user_values) # Since the ip in the last db entry has changed, the user object info all has to change too.
             # calling the get_ip_coords_points(), name, date_time allows for a profile to be created for each location in the db, allowing for later
             # analysis based on location most frequented and such.
     con.close()
+
+def data_pull(user_weather_data):
+    weather_data = user_weather_data()
+    sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
+    sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
 
 def extend_hours(obj):
         dict24 = {}
@@ -314,63 +339,34 @@ def sort_24(obj): # This is here to split the week long data sets into days for 
             x += 1
     return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
 
-def filter_latest(raw_data): # This will get the time data
-    print("placeholder")
-def main(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
-    # user = startup()
-    # weather_data = user.get_weather_data()
-    # sql_unformatted_drop_table(con)
-    # sql_make_unformatted_tables(con)
-    # sql_unformatted_add_test(con, weather_data)
-    # sql_unformatted_test(con)
-    sql_unformatted_by_date(con) # Grabs list of lists from date range specified.
+
+def startup(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
+    user = user_startup() # __init__ user object
+    data_pull(user.get_weather_data) # Pulls and stores data from current time
+
+def main():
+        # sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
+        # sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
+        # sql_unformatted_test(con) # This is a test function to print the dewpoint raw db entry.
+        # print(str(weather_data['properties']['maxTemperature']['values']) + "maxTemperature data")
+        # print(sql_unformatted_by_date(con)) # Grabs list of lists from date range specified. (1 week from now)
+    data_standard_format = data_list(sql_unformatted_by_date(con), data_types[0], "degC") #Sends the user data to the formatting function data_list.
+    data_by_day = sort_24(data_standard_format) # Returns a dictionary for information by day with keys 0-6 (str)
+    print(data_by_day)
+
+    # sql_unformatted_drop_table(con) # This just deletes all the tables for raw data.
+
+
 
     
-    # sql_unformatted_delete(con)
-    # sql_unformatted_test(con)
-
-    # data_by_type = weather_data['properties']['dewpoint']# ['values']
-    # print(data_by_type)
-
     
-    # data_standard_format = data_list(weather_data, 'dewpoint') #Sends the user data to the formatting function data_list.
     # print(data_standard_format)
     # data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
     # print(str(data_dict['0'])+ "\n")
     # print(len(data_dict['0']))
     # test_extend = extend_hours(data_dict['0'])
     # print(test_extend)
-    
-    # for type in data_types:
-    #     data_standard_format = data_list(weather_data, type) # gets one type of data into table ready format
-    #     data_dict = sort_24(data_standard_format) # sorts that data by day (7 total starting with 0) in a dict
-    #     for i in range(6): # for each day 
-    #         test_extend =  extend_hours(data_dict[str(i)]) # get the dictionary for each days dp's
-    #         print(test_extend)
-    #         hour = abs(24-len(test_extend))
-    #         for i in range(hour, 24): # goes through each hour in dict
-    #             if len(str(i)) == 1:
-    #                 i = "0" + str(i) # Just says if i is one digit then turn i into a 2 digit number with 0 in front for the dict.                
-    #                 sql_datadump(con, type, test_extend[str(i)]) # Takes each hour and inputs it into its respective db table in order.
-    #             else:
-    #                 sql_datadump(con, type, test_extend[str(i)]) 
-    
-    # sql_get_test(con, 'temperature') 
-    # sql_unformatted_add_test(con, [12, 3])
-    # sql_unformatted_test(con)  
-
-    # sql_unformatted_delete(con)
-    # sql_unformatted_test(con)
-
-
-    # data_standard_format = data_list(weather_data, 'temperature') #Sends the user data to the formatting function data_list./
-    # data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
-
-    # print(str(data_dict['1'])+ "\n")
-    # print(len(data_dict['1']))
-    # test_extend = extend_hours(data_dict['1'])
-    # print(test_extend)
-main()       
+         
 
     # after calling startup the user object will exist within the main loop and its methods can be called.
     # next I need to parse the weather data function into a usable set of variables, set up a new function to make a table for it
