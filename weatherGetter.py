@@ -114,9 +114,9 @@ def sql_unformatted_test(con):
     for row in rows:
         print(row)
 
-def sql_unformatted_by_date(con): # This will be the function we use to get data for x days.
+def sql_unformatted_by_date(con, dtype): # This will be the function we use to get data for x days.
     cursorObj = con.cursor()
-    cursorObj.execute("SELECT * from maxTemperature where validTime < date('now','8 days')")
+    cursorObj.execute(f"SELECT * from {dtype} where validTime < date('now','8 days')")
     rows = cursorObj.fetchall()
     rowList = [row for row in rows]
     return rowList
@@ -344,16 +344,14 @@ def startup(): # This is a simulated main loop. This will actually go into the q
     user = user_startup() # __init__ user object
     data_pull(user.get_weather_data) # Pulls and stores data from current time
 
-def main():
-        # sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
-        # sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
-        # sql_unformatted_test(con) # This is a test function to print the dewpoint raw db entry.
-        # print(str(weather_data['properties']['maxTemperature']['values']) + "maxTemperature data")
-        # print(sql_unformatted_by_date(con)) # Grabs list of lists from date range specified. (1 week from now)
-    data_standard_format = data_list(sql_unformatted_by_date(con), data_types[0], "degC") #Sends the user data to the formatting function data_list.
-    data_by_day = sort_24(data_standard_format) # Returns a dictionary for information by day with keys 0-6 (str)
-    print(data_by_day)
-
+# def main():
+#         # sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
+#         # sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
+#         # sql_unformatted_test(con) # This is a test function to print the dewpoint raw db entry.
+#         # print(str(weather_data['properties']['maxTemperature']['values']) + "maxTemperature data")
+#         # print(sql_unformatted_by_date(con)) # Grabs list of lists from date range specified. (1 week from now)
+    
+#     return data_by_day
     # sql_unformatted_drop_table(con) # This just deletes all the tables for raw data.
 
 
