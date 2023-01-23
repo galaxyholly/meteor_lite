@@ -339,6 +339,21 @@ def sort_24(obj): # This is here to split the week long data sets into days for 
             x += 1
     return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
 
+def sort_week_from_today():
+    date, time, weekday = date_time_2()
+    weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    weekday_num = weekdays.index(weekday)
+    new_weekdays = [weekdays[weekday_num:] + weekdays[:weekday_num]]
+    return new_weekdays[0]
+
+def display_week(data_types, unit):
+    data_standard_format = data_list(sql_unformatted_by_date(con, data_types), data_types, unit) #Sends the user data to the formatting function data_list.
+    data_by_day = sort_24(data_standard_format) # Returns a dictionary for information by day with keys 0-6 (str)
+    num1 = len(data_by_day)
+    num2 = num1 - 7
+    week_list = [data_by_day[str(num2 + i)] for i in range(7)]
+    week_list.append(unit)
+    return week_list
 
 def startup(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = user_startup() # __init__ user object

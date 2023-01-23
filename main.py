@@ -6,24 +6,6 @@ from weatherGetter import *
 import sys
 startup()
 
-
-
-def sort_week_from_today():
-    date, time, weekday = date_time_2()
-    weekdays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
-    weekday_num = weekdays.index(weekday)
-    new_weekdays = [weekdays[weekday_num:] + weekdays[:weekday_num]]
-    return new_weekdays[0]
-
-def display_week(data_types, unit):
-    data_standard_format = data_list(sql_unformatted_by_date(con, data_types), data_types, unit) #Sends the user data to the formatting function data_list.
-    data_by_day = sort_24(data_standard_format) # Returns a dictionary for information by day with keys 0-6 (str)
-    num1 = len(data_by_day)
-    num2 = num1 - 7
-    week_list = [data_by_day[str(num2 + i)] for i in range(7)]
-    week_list.append(unit)
-    return week_list
-
 week_list = sort_week_from_today()
 print(str(week_list) + "WEEKLIST")
 max_T = display_week(data_types[2], "C")
@@ -54,7 +36,7 @@ class MainWindow(QMainWindow):
         
 
         tempsLabelLayout = QGridLayout()
-        self.setFixedSize(600, 100)
+        self.setFixedSize(400, 100)
         
         MondayLabel = QLabel("M")
         TuesdayLabel = QLabel("T")
@@ -63,7 +45,6 @@ class MainWindow(QMainWindow):
         FridayLabel = QLabel("F")
         SaturdayLabel = QLabel("S")
         SundayLabel = QLabel("SN")  
-
 
         tempLabels = {
             "Monday":MondayLabel, 
@@ -121,7 +102,7 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.addWidget(button, 2,0,2,3)
 
         button2 = QPushButton("Arduino")
-        tempsLabelLayout.addWidget(button2, 2,4,2,3)
+        tempsLabelLayout.addWidget(button2, 2,5,2,3)
 
         # button2.clicked.connect()
 
