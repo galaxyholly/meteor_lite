@@ -35,28 +35,30 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowTitle("MeteorLite")
+        self.setStyleSheet("border-radius: 5px;")
             
         tempsLabelLayout = QGridLayout()
 
-        self.setGeometry(300, 60, 400, 30)
+        self.setGeometry(1920, 0, 400, 30)
             
-        MondayLabel = QLabel("M")
-        TuesdayLabel = QLabel("T")
-        WednesdayLabel = QLabel("W")
-        ThursdayLabel = QLabel("TH")
-        FridayLabel = QLabel("F")
-        SaturdayLabel = QLabel("S")
-        SundayLabel = QLabel("SN")  
+        self.MondayLabel = QLabel("M")
+        self.TuesdayLabel = QLabel("T")
+        self.WednesdayLabel = QLabel("W")
+        self.ThursdayLabel = QLabel("TH")
+        self.FridayLabel = QLabel("F")
+        self.SaturdayLabel = QLabel("S")
+        self.SundayLabel = QLabel("SN")  
 
         tempLabels = {
-            "Monday":MondayLabel, 
-            "Tuesday":TuesdayLabel, 
-            "Wednesday":WednesdayLabel, 
-            "Thursday":ThursdayLabel, 
-            "Friday":FridayLabel, 
-            "Saturday":SaturdayLabel, 
-            "Sunday":SundayLabel
+            "Monday":self.MondayLabel, 
+            "Tuesday":self.TuesdayLabel, 
+            "Wednesday":self.WednesdayLabel, 
+            "Thursday":self.ThursdayLabel, 
+            "Friday":self.FridayLabel, 
+            "Saturday":self.SaturdayLabel, 
+            "Sunday":self.SundayLabel
         }
 
         tempLabelsOrdered = [tempLabels[week_list[i]] for i in range(7)]
@@ -74,22 +76,22 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.addWidget(tempLabelsOrdered[5],0,5)
         tempsLabelLayout.addWidget(tempLabelsOrdered[6],0,6)
 
-        TMLabel = QLabel(f"{mon_high}/{mon_low}")
-        TTLabel = QLabel(f"{tues_high}/{tues_low}")
-        TWLabel = QLabel(f"{wed_high}/{wed_low}")
-        TTHLabel = QLabel(f"{thurs_high}/{thurs_low}")
-        TFLabel = QLabel(f"{fri_high}/{fri_low}")
-        TSLabel = QLabel(f"{sat_high}/{sat_low}")
-        TSNLabel = QLabel(f"{sun_high}/{sun_low}")
+        self.TMLabel = QLabel(f"{mon_high}/{mon_low}")
+        self.TTLabel = QLabel(f"{tues_high}/{tues_low}")
+        self.TWLabel = QLabel(f"{wed_high}/{wed_low}")
+        self.TTHLabel = QLabel(f"{thurs_high}/{thurs_low}")
+        self.TFLabel = QLabel(f"{fri_high}/{fri_low}")
+        self.TSLabel = QLabel(f"{sat_high}/{sat_low}")
+        self.TSNLabel = QLabel(f"{sun_high}/{sun_low}")
 
         temps = {
-            "Monday":TMLabel, 
-            "Tuesday":TTLabel, 
-            "Wednesday":TWLabel, 
-            "Thursday":TTHLabel, 
-            "Friday":TFLabel, 
-            "Saturday":TSLabel, 
-            "Sunday":TSNLabel
+            "Monday":self.TMLabel, 
+            "Tuesday":self.TTLabel, 
+            "Wednesday":self.TWLabel, 
+            "Thursday":self.TTHLabel, 
+            "Friday":self.TFLabel, 
+            "Saturday":self.TSLabel, 
+            "Sunday":self.TSNLabel
         }
 
         tempsOrdered = [temps[week_list[i]] for i in range(7)]
@@ -107,30 +109,36 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.addWidget(tempsOrdered[5],1,5)
         tempsLabelLayout.addWidget(tempsOrdered[6],1,6)
 
-        button = QPushButton("C")
-        button.setFont(QFont('Arial',7))
-        button.setFixedSize(11,11)
-        button.setStyleSheet(
+        self.button = QPushButton("C")
+        self.button.setFont(QFont('Arial',7))
+        self.button.setFixedSize(11,11)
+        self.button.setStyleSheet(
             "border : 0px solid gray;"
             "background-color: rgb(255,165,0);"
             "border-radius: 3px;"
             "margin-right: 1px;"
             "color: rgb(19,19,19);"
         )
-        button.clicked.connect(button.setText("F"))
-        tempsLabelLayout.addWidget(button, 0,7)
+
+        self.button.clicked.connect(self.the_button_was_clicked)
+
+    
+
+        tempsLabelLayout.addWidget(self.button, 0,7)
 
 
 
-        button2 = QPushButton("")
-        button2.setFixedSize(11,11)
-        button2.setStyleSheet(
+        self.button2 = QPushButton("V")
+        self.button2.setFixedSize(11,11)
+        self.button2.setFont(QFont('Arial',7))
+        self.button2.setStyleSheet(
             "border : 0px solid gray;"
             "background-color: rgb(255,165,0);"
             "border-radius: 3px;"
             "margin-right: 1px;"
+            "color: rgb(19,19,19);"
         )
-        tempsLabelLayout.addWidget(button2, 1,7)
+        tempsLabelLayout.addWidget(self.button2, 1,7)
 
 
         widget = QWidget()
@@ -139,22 +147,75 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.setSpacing(0)
         self.setCentralWidget(widget)
 
-    #     self.oldPos = self.pos()
+        self.oldPos = self.pos()
+    
+    def the_button_was_clicked(self):
+        if self.button.text() == "F":
+            self.button.setText("C")
+            mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
+            mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
+            tues_high = max_T[week_list.index('Tuesday')][0][3].split(".")[0]
+            tues_low = min_T[week_list.index('Tuesday')][0][3].split(".")[0]
+            wed_high = max_T[week_list.index('Wednesday')][0][3].split(".")[0]
+            wed_low = min_T[week_list.index('Wednesday')][0][3].split(".")[0]
+            thurs_high = max_T[week_list.index('Thursday')][0][3].split(".")[0]
+            thurs_low = min_T[week_list.index('Thursday')][0][3].split(".")[0]
+            fri_high = max_T[week_list.index('Friday')][0][3].split(".")[0]
+            fri_low = min_T[week_list.index('Friday')][0][3].split(".")[0]
+            sat_high = max_T[week_list.index('Saturday')][0][3].split(".")[0]
+            sat_low = min_T[week_list.index('Saturday')][0][3].split(".")[0]
+            sun_high = max_T[week_list.index('Sunday')][0][3].split(".")[0]
+            sun_low = min_T[week_list.index('Sunday')][0][3].split(".")[0]
+            self.TMLabel.setText(f"{mon_high}/{mon_low}")
+            self.TTLabel.setText(f"{tues_high}/{tues_low}")
+            self.TWLabel.setText(f"{wed_high}/{wed_low}")
+            self.TTHLabel.setText(f"{thurs_high}/{thurs_low}")
+            self.TFLabel.setText(f"{fri_high}/{fri_low}")
+            self.TSLabel.setText(f"{sat_high}/{sat_low}")
+            self.TSNLabel.setText(f"{sun_high}/{sun_low}")
+            return
+        if self.button.text() == "C":
+            self.button.setText("F")
+            mon_high = str(float(max_T[week_list.index('Monday')][0][3].split(".")[0]) * 1.8 + 32)
+            mon_low = str(float(min_T[week_list.index('Monday')][0][3].split(".")[0]) * 1.8 + 32)
+            tues_high = str(float(max_T[week_list.index('Tuesday')][0][3].split(".")[0]) * 1.8 + 32)
+            tues_low = str(float(min_T[week_list.index('Tuesday')][0][3].split(".")[0]) * 1.8 + 32)
+            wed_high = str(float(max_T[week_list.index('Wednesday')][0][3].split(".")[0]) * 1.8 + 32)
+            wed_low = str(float(min_T[week_list.index('Wednesday')][0][3].split(".")[0]) * 1.8 + 32)
+            thurs_high = str(float(max_T[week_list.index('Thursday')][0][3].split(".")[0]) * 1.8 + 32)
+            thurs_low = str(float(min_T[week_list.index('Thursday')][0][3].split(".")[0]) * 1.8 + 32)
+            fri_high = str(float(max_T[week_list.index('Friday')][0][3].split(".")[0]) * 1.8 + 32)
+            fri_low = str(float(min_T[week_list.index('Friday')][0][3].split(".")[0]) * 1.8 + 32)
+            sat_high = str(float(max_T[week_list.index('Saturday')][0][3].split(".")[0]) * 1.8 + 32)
+            sat_low = str(float(min_T[week_list.index('Saturday')][0][3].split(".")[0]) * 1.8 + 32)
+            sun_high = str(float(max_T[week_list.index('Sunday')][0][3].split(".")[0]) * 1.8 + 32)
+            sun_low = str(float(min_T[week_list.index('Sunday')][0][3].split(".")[0]) * 1.8 + 32)
+            self.TMLabel.setText(f"{mon_high}/{mon_low}")
+            self.TTLabel.setText(f"{tues_high}/{tues_low}")
+            self.TWLabel.setText(f"{wed_high}/{wed_low}")
+            self.TTHLabel.setText(f"{thurs_high}/{thurs_low}")
+            self.TFLabel.setText(f"{fri_high}/{fri_low}")
+            self.TSLabel.setText(f"{sat_high}/{sat_low}")
+            self.TSNLabel.setText(f"{sun_high}/{sun_low}")
+            return 
+    
+    def the_button2_was_clicked(self):
+        print("wow")
 
-    # def center(self):
-    #     qr = self.frameGeometry()
-    #     cp = QGuiApplication.primaryScreen().availableGeometry().center()
-    #     qr.moveCenter(cp)
-    #     self.move(qr.topLeft())
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
 
-    # def mousePressEvent(self, e):
-    #     self.oldPos = e.globalPosition().toPoint()
+    def mousePressEvent(self, e):
+        self.oldPos = e.globalPosition().toPoint()
 
-    # def mouseMoveEvent(self, e):
-    #     delta = QPoint(e.globalPosition().toPoint() - self.oldPos)
-    #     self.move(self.x() + delta.x(), self.y() + delta.y())
-    #     self.oldPos = e.globalPosition().toPoint()
-    #     print("wow")
+    def mouseMoveEvent(self, e):
+        delta = QPoint(e.globalPosition().toPoint() - self.oldPos)
+        self.move(self.x() + delta.x(), self.y() + delta.y())
+        self.oldPos = e.globalPosition().toPoint()
+        print("wow")
         
 # Only need one per application
 app = QApplication(sys.argv)
