@@ -1,10 +1,9 @@
 import requests
 import json
 import sqlite3
-import datetime
+
 from timeit import default_timer as timer
 from datetime import datetime
-
 
 data_types = [ # 26 dt's
         'temperature',
@@ -207,21 +206,6 @@ def get_ip_coords_points(): # Request as much as needed.
     ip_coords_points= [str(ip_coords[0]), ip_coords[1], ip_coords[2], gridX, gridY, office]
     return ip_coords_points
 
-# @functimer
-# def get_date_time(ip):
-#     date_time_response = requests.get(f"https://timeapi.io/api/Time/current/ip?ipAddress={ip}")
-#     date_time_info = json_converter(date_time_response.text)
-#     year = date_time_info["year"]
-#     month = date_time_info["month"]
-#     day = date_time_info["day"]
-#     hour = date_time_info["hour"]
-#     minute = date_time_info["minute"]
-#     second = date_time_info["seconds"]
-#     date = (f"{year}-{month}-{day}")
-#     time = (f"{hour}:{minute}:{second}")
-#     return date, time
-
-
 @functimer
 def date_time_2():
     weekday_map = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
@@ -237,8 +221,6 @@ def date_time_2():
     weekday = time_now.weekday()
     weekday_name = weekday_map[weekday]
     return date, time, weekday_name
-
-
 
 def user_startup(): # Startup will check
     con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information in the db.
@@ -358,37 +340,3 @@ def display_week(data_types, unit):
 def startup(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = user_startup() # __init__ user object
     data_pull(user.get_weather_data) # Pulls and stores data from current time
-
-# def main():
-#         # sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
-#         # sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
-#         # sql_unformatted_test(con) # This is a test function to print the dewpoint raw db entry.
-#         # print(str(weather_data['properties']['maxTemperature']['values']) + "maxTemperature data")
-#         # print(sql_unformatted_by_date(con)) # Grabs list of lists from date range specified. (1 week from now)
-    
-#     return data_by_day
-    # sql_unformatted_drop_table(con) # This just deletes all the tables for raw data.
-
-
-
-    
-    
-    # print(data_standard_format)
-    # data_dict = sort_24(data_standard_format) # sort_24 is being passed a LIST OF LISTS 
-    # print(str(data_dict['0'])+ "\n")
-    # print(len(data_dict['0']))
-    # test_extend = extend_hours(data_dict['0'])
-    # print(test_extend)
-         
-
-    # after calling startup the user object will exist within the main loop and its methods can be called.
-    # next I need to parse the weather data function into a usable set of variables, set up a new function to make a table for it
-    # then make every weather call compare dates with the last user db table entry. If there is not an equal number of entries on both sides, it makes a new one.
-    # This may not be the best way to go about it and I can 1000% change my mind after more thinking.
-    # Basically, I need to find a way to make one forecast entry per user entry and the forecast must match the table entry of that day.
-    # Then, its all about async and calling the user.get_weather_data() to update the forecast whenever a new table entry is made.
-    
-
-
-# Then, in the future, the idea is to add more widgets and data analysis and fun factoids. Then, the arduino code for meteorLite sensoring.
-# Then, write code that takes sensor data from arduino and uploads it to a server, which then gives info about ################

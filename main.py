@@ -1,5 +1,7 @@
 from PySide6 import QtCore
-from PySide6.QtWidgets import QApplication, QMainWindow, QLabel, QWidget, QPushButton, QGridLayout
+from PySide6.QtCore import Qt, QPoint
+from PySide6.QtWidgets import * # QApplication, QMainWindow, QLabel, QWidget, QPushButton, QGridLayout
+from PySide6.QtGui import *
 from weatherGetter import *
 
 # needed for command line args
@@ -13,31 +15,32 @@ min_T = display_week(data_types[3], "C")
 print(min_T)
 print(max_T)
 
-mon_high = max_T[week_list.index('Monday')][0][3]
-mon_low = min_T[week_list.index('Monday')][0][3]
-tues_high = max_T[week_list.index('Tuesday')][0][3]
-tues_low = min_T[week_list.index('Tuesday')][0][3]
-wed_high = max_T[week_list.index('Wednesday')][0][3]
-wed_low = min_T[week_list.index('Wednesday')][0][3]
-thurs_high = max_T[week_list.index('Thursday')][0][3]
-thurs_low = min_T[week_list.index('Thursday')][0][3]
-fri_high = max_T[week_list.index('Friday')][0][3]
-fri_low = min_T[week_list.index('Friday')][0][3]
-sat_high = max_T[week_list.index('Saturday')][0][3]
-sat_low = min_T[week_list.index('Saturday')][0][3]
-sun_high = max_T[week_list.index('Sunday')][0][3]
-sun_low = min_T[week_list.index('Sunday')][0][3]
+mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
+mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
+tues_high = max_T[week_list.index('Tuesday')][0][3].split(".")[0]
+tues_low = min_T[week_list.index('Tuesday')][0][3].split(".")[0]
+wed_high = max_T[week_list.index('Wednesday')][0][3].split(".")[0]
+wed_low = min_T[week_list.index('Wednesday')][0][3].split(".")[0]
+thurs_high = max_T[week_list.index('Thursday')][0][3].split(".")[0]
+thurs_low = min_T[week_list.index('Thursday')][0][3].split(".")[0]
+fri_high = max_T[week_list.index('Friday')][0][3].split(".")[0]
+fri_low = min_T[week_list.index('Friday')][0][3].split(".")[0]
+sat_high = max_T[week_list.index('Saturday')][0][3].split(".")[0]
+sat_low = min_T[week_list.index('Saturday')][0][3].split(".")[0]
+sun_high = max_T[week_list.index('Sunday')][0][3].split(".")[0]
+sun_low = min_T[week_list.index('Sunday')][0][3].split(".")[0]
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowTitle("MeteorLite")
-        
-
+            
         tempsLabelLayout = QGridLayout()
-        self.setFixedSize(400, 100)
-        
+
+        self.setGeometry(300, 60, 400, 30)
+            
         MondayLabel = QLabel("M")
         TuesdayLabel = QLabel("T")
         WednesdayLabel = QLabel("W")
@@ -58,7 +61,10 @@ class MainWindow(QMainWindow):
 
         tempLabelsOrdered = [tempLabels[week_list[i]] for i in range(7)]
         tempsAlign = [label.setAlignment(QtCore.Qt.AlignCenter) for label in tempLabelsOrdered]
-        tempsAlign      
+        tempsAlign
+
+        for item in tempLabelsOrdered:
+            item.setFont(QFont('Arial',8))
 
         tempsLabelLayout.addWidget(tempLabelsOrdered[0],0,0)
         tempsLabelLayout.addWidget(tempLabelsOrdered[1],0,1)
@@ -90,6 +96,9 @@ class MainWindow(QMainWindow):
         tempLabelsAlign = [label.setAlignment(QtCore.Qt.AlignCenter) for label in tempsOrdered]
         tempLabelsAlign
 
+        for item in tempsOrdered:
+            item.setFont(QFont('Arial',8))
+
         tempsLabelLayout.addWidget(tempsOrdered[0],1,0)
         tempsLabelLayout.addWidget(tempsOrdered[1],1,1)
         tempsLabelLayout.addWidget(tempsOrdered[2],1,2)
@@ -98,24 +107,61 @@ class MainWindow(QMainWindow):
         tempsLabelLayout.addWidget(tempsOrdered[5],1,5)
         tempsLabelLayout.addWidget(tempsOrdered[6],1,6)
 
-        button = QPushButton("See Hourly")
-        tempsLabelLayout.addWidget(button, 2,0,2,3)
+        button = QPushButton("C")
+        button.setFont(QFont('Arial',7))
+        button.setFixedSize(11,11)
+        button.setStyleSheet(
+            "border : 0px solid gray;"
+            "background-color: rgb(255,165,0);"
+            "border-radius: 3px;"
+            "margin-right: 1px;"
+            "color: rgb(19,19,19);"
+        )
+        button.clicked.connect(button.setText("F"))
+        tempsLabelLayout.addWidget(button, 0,7)
 
-        button2 = QPushButton("Arduino")
-        tempsLabelLayout.addWidget(button2, 2,5,2,3)
 
-        # button2.clicked.connect()
+
+        button2 = QPushButton("")
+        button2.setFixedSize(11,11)
+        button2.setStyleSheet(
+            "border : 0px solid gray;"
+            "background-color: rgb(255,165,0);"
+            "border-radius: 3px;"
+            "margin-right: 1px;"
+        )
+        tempsLabelLayout.addWidget(button2, 1,7)
+
 
         widget = QWidget()
         widget.setLayout(tempsLabelLayout)
-        tempsLabelLayout.setContentsMargins(0,0,0,0)
+        tempsLabelLayout.setContentsMargins(2,2,2,2)
+        tempsLabelLayout.setSpacing(0)
         self.setCentralWidget(widget)
 
+    #     self.oldPos = self.pos()
 
+    # def center(self):
+    #     qr = self.frameGeometry()
+    #     cp = QGuiApplication.primaryScreen().availableGeometry().center()
+    #     qr.moveCenter(cp)
+    #     self.move(qr.topLeft())
 
+    # def mousePressEvent(self, e):
+    #     self.oldPos = e.globalPosition().toPoint()
 
+    # def mouseMoveEvent(self, e):
+    #     delta = QPoint(e.globalPosition().toPoint() - self.oldPos)
+    #     self.move(self.x() + delta.x(), self.y() + delta.y())
+    #     self.oldPos = e.globalPosition().toPoint()
+    #     print("wow")
+        
 # Only need one per application
 app = QApplication(sys.argv)
+palette = QPalette()
+palette.setColor(QPalette.Window, QColor(19,19,19))
+palette.setColor(QPalette.WindowText, QColor(255,165,0))
+app.setPalette(palette)
 
 # Creating a new widget, which will be the window
 w = MainWindow()
