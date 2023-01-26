@@ -30,6 +30,70 @@ sat_low = min_T[week_list.index('Saturday')][0][3].split(".")[0]
 sun_high = max_T[week_list.index('Sunday')][0][3].split(".")[0]
 sun_low = min_T[week_list.index('Sunday')][0][3].split(".")[0]
 
+
+class AnotherWindow(QWidget):
+    # Is a QWidget. If it has no parent, it will appear as a free floating window.
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlag(Qt.FramelessWindowHint)
+        self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
+        vert1 = QVBoxLayout()
+        horz1 = QHBoxLayout()
+        vert2 = QVBoxLayout()
+        grid1 = QGridLayout()
+
+        vert1.addLayout(horz1) # Main strip containing top box, graph, bottomlabel
+        horz1.addLayout(vert2) # This a vertical and a grid, which will house most of the info.
+        horz1.addLayout(grid1)
+
+        dayLabel = QLabel("wow")
+        currentTemp = QLabel("wow2")
+
+        vert2.addWidget(dayLabel)
+        vert2.addWidget(currentTemp)
+        
+        # self.label = QLabel("Another Window")
+        # layout.addWidget(self.label)
+        self.setLayout(vert1)
+        vert1.setAlignment(QtCore.Qt.AlignLeft)
+
+    def center(self):
+        qr = self.frameGeometry()
+        cp = QGuiApplication.primaryScreen().availableGeometry().center()
+        qr.moveCenter(cp)
+        self.move(qr.topLeft())
+
+    def mousePressEvent(self, e):
+        self.oldPos = e.globalPosition().toPoint()
+
+    def mouseMoveEvent(self, e):
+        delta = QPoint(e.globalPosition().toPoint() - self.oldPos)
+        self.move(self.x() + delta.x(), self.y() + delta.y())
+        self.oldPos = e.globalPosition().toPoint()
+        print("wow")
+
+class hoverLabel(QLabel):
+    def __init__(self, parent=None):
+        super(hoverLabel, self).__init__(parent)
+        # self.w == None
+    def enterEvent(self, QEvent):
+        # here the code for mouse hover
+        self.w = AnotherWindow()
+        self.w.setGeometry(1920, 30, 400, 75)
+        self.w.show()
+            
+
+    def leaveEvent(self, QEvent):
+        # here the code for mouse leave - perhaps I need to look at the fact that the label is the parent to the window (maybe?) so I can 
+        # Find a way to set mouse pointer conditions to only close the window when it's out of the thing.
+        # once leave label, check if mouse is still ontop of window elements, if so do nothing, else: close?
+        self.w.close()
+        self.w = None 
+
+
+
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -38,18 +102,18 @@ class MainWindow(QMainWindow):
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowTitle("MeteorLite")
         self.setStyleSheet("border-radius: 5px;")
-            
+        self.w = None
         tempsLabelLayout = QGridLayout()
 
         self.setGeometry(1920, 0, 400, 30)
             
-        self.MondayLabel = QLabel("M")
-        self.TuesdayLabel = QLabel("T")
-        self.WednesdayLabel = QLabel("W")
-        self.ThursdayLabel = QLabel("TH")
-        self.FridayLabel = QLabel("F")
-        self.SaturdayLabel = QLabel("S")
-        self.SundayLabel = QLabel("SN")  
+        self.MondayLabel = hoverLabel("M")
+        self.TuesdayLabel = hoverLabel("T")
+        self.WednesdayLabel = hoverLabel("W")
+        self.ThursdayLabel = hoverLabel("TH")
+        self.FridayLabel = hoverLabel("F")
+        self.SaturdayLabel = hoverLabel("S")
+        self.SundayLabel = hoverLabel("SN")  
 
         tempLabels = {
             "Monday":self.MondayLabel, 
@@ -140,6 +204,7 @@ class MainWindow(QMainWindow):
         )
         tempsLabelLayout.addWidget(self.button2, 1,7)
 
+        # self.button2.clicked.connect(self.show_new_window)
 
         widget = QWidget()
         widget.setLayout(tempsLabelLayout)
@@ -198,9 +263,6 @@ class MainWindow(QMainWindow):
             self.TSLabel.setText(f"{sat_high}/{sat_low}")
             self.TSNLabel.setText(f"{sun_high}/{sun_low}")
             return 
-    
-    def the_button2_was_clicked(self):
-        print("wow")
 
     def center(self):
         qr = self.frameGeometry()
@@ -216,6 +278,18 @@ class MainWindow(QMainWindow):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
+
+    # def show_new_window(self, checked):
+    #     if self.w is None:
+    #         self.w = AnotherWindow()
+    #         self.w.show()
+    #     else:
+    #         self.w.close()
+    #         self.w = None
+    
+
+
+    
         
 # Only need one per application
 app = QApplication(sys.argv)
