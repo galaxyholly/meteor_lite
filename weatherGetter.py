@@ -312,7 +312,7 @@ def sort_24(obj): # This is here to split the week long data sets into days for 
     placeholderList = []
     daysDict = {}
     for i in range(len(obj)-1):
-        if obj[i][2][9:10] == obj[i+1][2][9:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
+        if obj[i][2][8:10] == obj[i+1][2][8:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
             placeholderList.append([obj[i][0], obj[i][1],obj[i][2], obj[i][3]])
         else:
             placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]]) # each element gets appended to the empty list until you
@@ -336,6 +336,22 @@ def display_week(data_types, unit):
     week_list = [data_by_day[str(num2 + i)] for i in range(7)]
     week_list.append(unit)
     return week_list
+
+def current_temp(day):
+    temperature_data = sql_unformatted_by_date(con, 'temperature') # Grabs all temp data for a week.
+    data_standard_format = data_list(temperature_data, 'temperature', 'C') # Formats it
+    data_by_day = sort_24(data_standard_format)
+    # print(data_by_day)
+    last_7_nums_start = len(data_by_day) - 7
+    # print(last_7_nums_start)
+    # print(data_by_day[str(last_7_nums_start)])
+    currentData = {}
+    for i in range(7):
+        currentData[f"{i}"] = data_by_day[str(last_7_nums_start+i)]
+    hr24_data = extend_hours(currentData[str(day)])
+    return hr24_data
+
+
 
 def startup(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = user_startup() # __init__ user object
