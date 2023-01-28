@@ -12,8 +12,38 @@ week_list = sort_week_from_today()
 print(str(week_list) + "WEEKLIST")
 max_T = display_week(data_types[2], "C")
 min_T = display_week(data_types[3], "C")
-print(min_T)
-print(max_T)
+
+
+# temp_7days_24 = current_data('temperature', 'C')
+# print(temp_7days_24)
+# print(temp_7days_24['1'])
+# wind_7days_24 = current_data('windSpeed', 'kph')
+# winddir_7days_24 = current_data('windDirection', '?')
+# skycover_7days_24 = current_data('skyCover', '%')
+precipPer_7days_24 = current_data('probabilityOfPrecipitation', '%')
+print(extend_hours(precipPer_7days_24))
+
+# print(precipPer_7days_24['0'])
+# print(" ")
+# print(precipPer_7days_24['1'])
+# print(" ")
+# print(precipPer_7days_24['2'])
+# print(" ")
+# print(precipPer_7days_24['3'])
+# print(" ")
+# print(precipPer_7days_24['4'])
+# print(" ")
+# print(precipPer_7days_24['5'])
+# print(" ")
+# print(precipPer_7days_24['6'])
+
+
+
+
+
+ 
+
+# precipTot_7days_24 = current_data('quantitativePrecipitation', 'cm')
 
 
 
@@ -34,24 +64,7 @@ sun_low = min_T[week_list.index('Sunday')][0][3].split(".")[0]
 
 highLowList = [mon_high, mon_low, tues_high, tues_low, wed_high, wed_low, thurs_high, thurs_low, fri_high, fri_low, sat_high, sat_low, sun_high, sun_low]
 
-def time_right_now():
-        date, time, day = date_time_2()
-        print(time)
-        hour = int(time.split(':')[0])-1
-        if hour < 10:
-            time_rn = "0" + str(hour)
-            return time_rn
-        else: 
-            time_rn = int(time.split(':')[0])-1
-            return time_rn
 
-week_nums = [0,1,2,3,4,5,6]
-
-
-each_day = [current_temp(str(i)) for i in range(7)]
-
-
-        
 
 class AnotherWindow(QWidget):
     # Is a QWidget. If it has no parent, it will appear as a free floating window.
@@ -62,14 +75,17 @@ class AnotherWindow(QWidget):
         self.day = dataName # Is just the name
         print(self.day)
 
-        day_no = week_list.index(self.day)
-        
-        
+        day_no = str(week_list.index(self.day))
         time_rn = time_right_now()
- 
+        print(time_rn)
+        
 
-        temp_rn = str(each_day[day_no][time_rn][3]) + "°"
-
+        temp_rn = str(temp_7days_24[day_no][time_rn][3] + "°")
+        windSpd_rn = str(wind_7days_24[day_no][time_rn][3] + "kph")
+        skyCover_rn = str(skycover_7days_24[day_no][time_rn][3] + "%")
+        windDir_rn = str(winddir_7days_24[day_no][time_rn][3] + "°")
+        precipTot_rn = str(precipPer_7days_24[day_no][time_rn][3] + "%")
+        precipPer_rn = str(precipTot_7days_24[day_no][time_rn][3] + "cm")
 
         vert1 = QVBoxLayout()
         horz1 = QHBoxLayout()
@@ -82,14 +98,43 @@ class AnotherWindow(QWidget):
 
         dayLabel = QLabel(f"{dataName}")
         dayLabel.setFont(QFont('Arial', 12))
+
         currentTemp = QLabel(f"{temp_rn}")
         currentTemp.setFont(QFont('Arial', 21))
         currentTemp.setStyleSheet(
             "color: white;"
         )
-
         vert2.addWidget(dayLabel)
         vert2.addWidget(currentTemp)
+
+        windLabel = QLabel("Wind")
+        windLabel.setFont(QFont('Arial', 10))
+
+        currentWind = QLabel(f"{windSpd_rn}")
+        currentWind.setFont(QFont('Arial', 10))
+
+        currentWindDirection = QLabel(f"{windDir_rn}")
+        currentWindDirection.setFont(QFont('Arial', 10))
+
+        currentSkycover = QLabel(f"{skyCover_rn}")
+        currentSkycover.setFont(QFont('Arial', 10))
+
+        currentPrecipPercent = QLabel(f"{precipPer_rn}")
+        currentPrecipPercent.setFont(QFont('Arial', 10))
+
+        currentPrecipTotal = QLabel(f"{precipTot_rn}")
+        currentPrecipTotal.setFont(QFont('Arial', 10))
+        
+        grid1.addWidget(windLabel,0,0)
+        grid1.addWidget(currentWind,1,0)
+        grid1.addWidget(currentWindDirection,2,0)
+        grid1.addWidget(currentSkycover,0,1)
+        grid1.addWidget(currentPrecipTotal, 1,1)
+        grid1.addWidget(currentPrecipPercent, 2,1)
+        
+
+
+        
 
 
         # self.button2 = QPushButton("V")
