@@ -13,45 +13,28 @@ print(str(week_list) + "WEEKLIST")
 max_T = display_week(data_types[2], "C")
 min_T = display_week(data_types[3], "C")
 
-# silly = sql_unformatted_by_date(con, 'temperature')
-# for line in silly:
-#     print(line)
-# temp_7days_24 = current_data('temperature', 'C')
-# print(temp_7days_24)
-# print(temp_7days_24['1'])
-# wind_7days_24 = current_data('windSpeed', 'kph')
-# winddir_7days_24 = current_data('windDirection', '?')
-# skycover_7days_24 = current_data('skyCover', '%')
+
+temp_7days_24 = current_data('temperature', 'C')
+temp_7days_24_extend = extend_hours(temp_7days_24)
+
+
+# print(temp_7days_24_extend['0'])
+# for item in temp_7days_24_extend:
+#     for subitem in temp_7days_24_extend[item]:
+#         print(temp_7days_24_extend[item][subitem])
+
+
+
+wind_7days_24 = current_data('windSpeed', 'kph')
+wind_7days_24_extend = extend_hours(wind_7days_24)
+winddir_7days_24 = current_data('windDirection', '?')
+winddir_7days_24_extend = extend_hours(winddir_7days_24)
+skycover_7days_24 = current_data('skyCover', '%')
+skycover_7days_24_extend = extend_hours(skycover_7days_24)
 precipPer_7days_24 = current_data('probabilityOfPrecipitation', '%')
-
-
-cello = extend_hours(precipPer_7days_24)
-for obj in cello:
-    print(str(cello[obj]) + "\n")
-
-# print(precipPer_7days_24['0'])
-# print(" ")
-# print(precipPer_7days_24['1'])
-# print(" ")
-# print(precipPer_7days_24['2'])
-# print(" ")
-# print(precipPer_7days_24['3'])
-# print(" ")
-# print(precipPer_7days_24['4'])
-# print(" ")
-# print(precipPer_7days_24['5'])
-# print(" ")
-# print(precipPer_7days_24['6'])
-
-
-
-
-
- 
-
-# precipTot_7days_24 = current_data('quantitativePrecipitation', 'cm')
-
-
+precipPer_7days_24_extend= extend_hours(precipPer_7days_24)
+precipTot_7days_24 = current_data('quantitativePrecipitation', 'cm')
+precipTot_7days_24_extend = extend_hours(precipTot_7days_24)
 
 mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
 mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
@@ -70,8 +53,6 @@ sun_low = min_T[week_list.index('Sunday')][0][3].split(".")[0]
 
 highLowList = [mon_high, mon_low, tues_high, tues_low, wed_high, wed_low, thurs_high, thurs_low, fri_high, fri_low, sat_high, sat_low, sun_high, sun_low]
 
-
-
 class AnotherWindow(QWidget):
     # Is a QWidget. If it has no parent, it will appear as a free floating window.
     def __init__(self, dataName):
@@ -86,12 +67,13 @@ class AnotherWindow(QWidget):
         print(time_rn)
         
 
-        temp_rn = str(temp_7days_24[day_no][time_rn][3] + "°")
-        windSpd_rn = str(wind_7days_24[day_no][time_rn][3] + "kph")
-        skyCover_rn = str(skycover_7days_24[day_no][time_rn][3] + "%")
-        windDir_rn = str(winddir_7days_24[day_no][time_rn][3] + "°")
-        precipTot_rn = str(precipPer_7days_24[day_no][time_rn][3] + "%")
-        precipPer_rn = str(precipTot_7days_24[day_no][time_rn][3] + "cm")
+        temp_rn = str(temp_7days_24_extend[day_no][time_rn][3] + "°")
+        windSpd_rn = str(wind_7days_24_extend[day_no][time_rn][3] + "kph")
+        skyCover_rn = str(skycover_7days_24_extend[day_no][time_rn][3] + "%")
+        windDir_rn = str(winddir_7days_24_extend[day_no][time_rn][3] + "°")
+        precipPer_rn = str(precipPer_7days_24_extend[day_no][time_rn][3] + "%")
+        precipTot_rn = str(precipTot_7days_24_extend[day_no][time_rn][3] + "cm")
+        
 
         vert1 = QVBoxLayout()
         horz1 = QHBoxLayout()
