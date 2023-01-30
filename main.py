@@ -13,7 +13,9 @@ print(str(week_list) + "WEEKLIST")
 max_T = display_week(data_types[2], "C")
 min_T = display_week(data_types[3], "C")
 
-
+# silly = sql_unformatted_by_date(con, 'temperature')
+# for line in silly:
+#     print(line)
 # temp_7days_24 = current_data('temperature', 'C')
 # print(temp_7days_24)
 # print(temp_7days_24['1'])
@@ -21,7 +23,11 @@ min_T = display_week(data_types[3], "C")
 # winddir_7days_24 = current_data('windDirection', '?')
 # skycover_7days_24 = current_data('skyCover', '%')
 precipPer_7days_24 = current_data('probabilityOfPrecipitation', '%')
-print(extend_hours(precipPer_7days_24))
+
+
+cello = extend_hours(precipPer_7days_24)
+for obj in cello:
+    print(str(cello[obj]) + "\n")
 
 # print(precipPer_7days_24['0'])
 # print(" ")

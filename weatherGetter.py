@@ -115,7 +115,7 @@ def sql_unformatted_test(con):
 
 def sql_unformatted_by_date(con, dtype): # This will be the function we use to get data for x days.
     cursorObj = con.cursor()
-    cursorObj.execute(f"SELECT * from {dtype} where validTime < date('now','8 days')") # Don't change these days
+    cursorObj.execute(f"SELECT * from {dtype} where validTime < date('now','7 days')") # Don't change these days
     rows = cursorObj.fetchall()
     rowList = [row for row in rows]
     return rowList
@@ -274,71 +274,90 @@ def extend_hours(obj): #obj is a dict with 7 days worth of datapoints, separated
     dict_7_days = {} # This initializes what will be the final dictionary containing 7 dictionaries each with 24 datapoints (or close)
     dict_1_day = {} 
     day_counter = 0 # This will set the current key the data points are being saved to.
-    dict_7_days[str(day_counter)] = dict_1_day.copy() # setup dictionaries so I can use index/slice notation to append to dicts.
-    working_datapoint_set = obj[str(day_counter)]
-    print(str(working_datapoint_set) + "WORKING_DATAPOINT_SET")
-    first_hour = int(obj[str(day_counter)][0][2][11:13]) # Day -> First datapoint -> date_time -> hour 
-    print(str(first_hour) + "FIRST_HOUR")
-    for point in working_datapoint_set: # ['probabilityOfPrecipitation', '%', '2023-02-02T12:00:00+00:00/PT12H', '7'] - for reference
-        dict_7_days[str(day_counter)][str(first_hour)] = point.copy()
-        extension_hours = int(point[2].split("T")[2][0:-1])-1
-        print(str(extension_hours))
-        current_hour = int(point[2][11:13])
-        if extension_hours > 0 and (current_hour + extension_hours) < 24:
-            print("if")
-            working_point = point.copy()
-            working_point_date_time = working_point[2]
-            print(str(working_point_date_time) + "WORKING_POINT_DATE_TIME")
-            for i in range(1, extension_hours):
-                # We have to take the working point and build a new one using parts, and use i to change the deets. + 1 hour, -1 extn hour.
-                new_hour = int(working_point_date_time[11:13]) + i # Will just add each larger i to a copy of the base point hour.
-                new_extension_count = int(working_point_date_time.split("T")[2][0:-1])-1-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
-                build_point = working_point_date_time[0:11] + str(new_hour) + working_point_date_time[13:28] + str(new_extension_count)
-                dict_7_days[str(day_counter)][str(new_hour)] = [working_point[0], working_point[1], build_point, working_point[3]] #appends to dict.
-                print(str(dict_7_days[str(day_counter)][str(new_hour)]) + "NEW_DICT_ENTRY")
-                if dict_7_days[str(day_counter)][str(new_hour)][2][11:13] == 23:
-                    day_counter += 1
-                    continue
+
+    for dataSet in obj:
+        dict_7_days[str(day_counter)] = dict_1_day.copy() # setup dictionaries so I can use index/slice notation to append to dicts.
+        working_datapoint_set = obj[dataSet]
+        print(str(working_datapoint_set) + "WORKING_DATAPOINT_SET")
+        first_hour = str(obj[dataSet][0][2][11:13]) # Day -> First datapoint -> date_time -> hour 
+        print(first_hour + "FIRST_HOUR")
+        dict_7_days[str(day_counter)][first_hour] = working_datapoint_set[0].copy()
+
+        for point in working_datapoint_set: # ['probabilityOfPrecipitation', '%', '2023-02-02T12:00:00+00:00/PT12H', '7'] - for reference
+            print(str(point)+"POINT")
+            extension_hours = int(point[2].split("T")[2][0:-1])-1
+            print(str(extension_hours)+"EXTENSION_HOURS")
+            current_hour = str(point[2][11:13])
+            print(current_hour + "CURRENT_HOUR")
+            if extension_hours > 0 and (int(current_hour) + extension_hours) <= 23:
+                print("if")
+                working_point = point.copy()
+                working_point_date_time = working_point[2]
+                print(str(working_point_date_time) + "WORKING_POINT_DATE_TIME")
+                dict_7_days[str(day_counter)][current_hour] = working_point
+                for i in range(1, extension_hours + 1):
+                    # We have to take the working point and build a new one using parts, and use i to change the deets. + 1 hour, -1 extn hour. 
+                    # Will just add each larger i to a copy of the base point hour.
+                    old_hour = int(working_point_date_time[11:13])
+                    if old_hour + i <= 9:
+                        new_hour = "0" + str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
+                    else:
+                        new_hour = str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
+                    new_extension_count = int(working_point_date_time.split("T")[2][0:-1])-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
+                    build_point = working_point_date_time[0:11] + str(new_hour) + working_point_date_time[13:28] + str(new_extension_count) + "H"
+                    print(build_point + "BUILD POINT")
+                    dict_7_days[str(day_counter)][str(new_hour)] = [working_point[0], working_point[1], build_point, working_point[3]] #appends to dict.
+                    if str(dict_7_days[str(day_counter)][str(new_hour)][2][11:13]) == str(23):
+                        print("SILLYBOBDWADWADDAWDADSADASDADDDDDDDDDDDDDDDDDDDDd")
+                        day_counter += 1
+                        continue
+            hour_rn = str(dict_7_days[str(day_counter)][str(point[2][11:13])][2][11:13])
+            # print(hour_rn + "HOUR_RN")
+            if hour_rn == str(23):
+                print("SILLYBOBDWADWADDAWDADSADASDADDDDDDDDDDDDDDDDDDDDd")
+                day_counter += 1
                 continue
-        elif extension_hours > 0 and (current_hour + extension_hours) > 23:
-            print("elif")
-            hours_to_carry_over = extension_hours - (23 - current_hour) # This grabs the extra off the end of the hours to use for the next days set.
-            extension_hours_trimmed = extension_hours - hours_to_carry_over
-            working_point = point.copy()
-            working_point_date_time = working_point[2]
-            for i in range(1, extension_hours_trimmed):
-                old_hour = int(working_point_date_time[11:13])
-                if old_hour < 10:
-                    new_hour = "0" + str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
+                    
+            elif extension_hours > 0 and (int(current_hour) + extension_hours) > 23:
+                print("elif")
+                hours_to_carry_over = extension_hours - (23 - int(current_hour)) # This grabs the extra off the end of the hours to use for the next days set.
+                extension_hours_trimmed = extension_hours - hours_to_carry_over
+                working_point = point.copy()
+                working_point_date_time = working_point[2]
+                for i in range(1, extension_hours_trimmed):
+                    old_hour = int(working_point_date_time[11:13])
+                    if old_hour < 10:
+                        new_hour = "0" + str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
+                    else:
+                        new_hour = str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
+                    new_extension_count = int(working_point_date_time.split("T")[2][0:-1])-1-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
+                    build_point = working_point_date_time[0:11] + str(new_hour) + working_point_date_time[13:28] + str(new_extension_count) + "H"
+                    dict_7_days[str(day_counter)][str(new_hour)] = [working_point[0], working_point[1], build_point, working_point[3]]
+                day_counter += 1
+                dict_7_days[str(day_counter)] = dict_1_day.copy()
+                working_point_next_day_base = working_point.copy() # Need to change the date now and reset time to 00:00, set ## in PT##H to hours_to_carry_over
+                old_date = int(working_point_next_day_base[2][9:10])
+                if old_date < 10:
+                    new_date = "0" + str(old_date + 1)
                 else:
-                    new_hour = str(old_hour + i) # Will just add each larger i to a copy of the base point hour.
-                new_extension_count = int(working_point_date_time.split("T")[2][0:-1])-1-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
-                build_point = working_point_date_time[0:11] + str(new_hour) + working_point_date_time[13:28] + str(new_extension_count)
-                dict_7_days[str(day_counter)][str(new_hour)] = [working_point[0], working_point[1], build_point, working_point[3]]
-            day_counter += 1
-            dict_7_days[str(day_counter)] = dict_1_day.copy()
-            working_point_next_day_base = working_point.copy() # Need to change the date now and reset time to 00:00, set ## in PT##H to hours_to_carry_over
-            old_date = int(working_point_next_day_base[2][9:10])
-            if old_date < 10:
-                new_date = "0" + str(old_date + 1)
+                    new_date = str(old_date + 1)
+                time_reset = "00"
+                working_point_next_day = [working_point_next_day_base[0], working_point_next_day_base[1], (working_point_next_day_base[2][0:8] + new_date + "T" + time_reset + working_point_next_day_base[2][13:28] + str(hours_to_carry_over) + "H"), working_point_next_day_base[3]]
+                working_point_next_day_date_time = working_point_next_day[2]
+                for i in range(1, hours_to_carry_over):
+                    old_hour = int(working_point_next_day_date_time[11:13])
+                    if old_hour < 10:
+                        new_hour_int = old_hour + i
+                        new_hour2 = "0" + str(new_hour_int)# Will just add each larger i to a copy of the base point hour.
+                    else: #old_hour > 10:
+                        new_hour2 = str(old_hour + i)
+                    new_extension_count = int(working_point_next_day_date_time.split("T")[2][0:-1])-1-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
+                    build_point = working_point_next_day_date_time[0:11] + str(new_hour) + working_point_next_day_date_time[13:28] + str(new_extension_count) + "H"
+                    dict_7_days[str(day_counter)][str(new_hour2)] = [working_point_next_day[0], working_point_next_day[1], build_point, working_point_next_day[3]]
+                continue
             else:
-                new_date = str(old_date + 1)
-            time_reset = "00"
-            working_point_next_day = [working_point_next_day_base[0], working_point_next_day_base[1], (working_point_next_day_base[2][0:8] + new_date + "T" + time_reset + working_point_next_day_base[2][13:28] + str(hours_to_carry_over) + "H"), working_point_next_day_base[3]]
-            working_point_next_day_date_time = working_point_next_day[2]
-            for i in range(1, hours_to_carry_over):
-                old_hour = int(working_point_next_day_date_time[11:13])
-                if old_hour < 10:
-                    new_hour_int = old_hour + i
-                    new_hour2 = "0" + str(new_hour_int)# Will just add each larger i to a copy of the base point hour.
-                else: #old_hour > 10:
-                    new_hour2 = str(old_hour + i)
-                new_extension_count = int(working_point_next_day_date_time.split("T")[2][0:-1])-1-i # This is the PT##H at the end. Splits and takes after the T [-1]. Subtracts i.
-                build_point = working_point_next_day_date_time[0:11] + str(new_hour) + working_point_next_day_date_time[13:28] + str(new_extension_count)
-                dict_7_days[str(day_counter)][str(new_hour2)] = [working_point_next_day[0], working_point_next_day[1], build_point, working_point_next_day[3]]
-            continue
-        else:
-            print("else")
+                print("else")
+                continue
             continue
     return dict_7_days
 
@@ -408,25 +427,26 @@ def extend_hours(obj): #obj is a dict with 7 days worth of datapoints, separated
 
 @functimer            
 def data_list(user_weather_data, data_type, data_unit): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
-    listLength = len(user_weather_data)
-    data_time = [user_weather_data[i][0] for i in range(listLength)]
-    data_values = [str(user_weather_data[i][1])[0:4] for i in range(listLength)]
-    data_pre_sort = [[data_type, data_unit, data_time[i], data_values[i]] for i in range(listLength)] #List of lists [name, unit, date, value]
-    return data_pre_sort
+    data_pre_sort = [[data_type, data_unit, user_weather_data[i][0], str(user_weather_data[i][1])[0:4]] for i in range(int(len(user_weather_data )))]
+    return data_pre_sort # I think this needs optimizing.
 
 @functimer
 def sort_24(obj): # This is here to split the week long data sets into days for further processing in extend_hours()
     x = 0
     placeholderList = []
     daysDict = {}
-    for i in range(len(obj)-1):
-        if obj[i][2][8:10] == obj[i+1][2][8:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
-            placeholderList.append([obj[i][0], obj[i][1],obj[i][2], obj[i][3]])
-        else:
+    for i in range(len(obj)):
+        try:
+            if obj[i][2][8:10] == obj[i+1][2][8:10]: # If the dates are the same, add the x to the beginning of a 3 part [date,value,unit] list. 
+                placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]])
+            elif obj[i][2][8:10] != obj[i+1][2][8:10]:
+                placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]]) # each element gets appended to the empty list until you
+                daysDict[str(x)] = [elt for elt in placeholderList] # have all the elements of a single day, which the list gets added to a dict keyed for that day
+                placeholderList.clear() # list is cleared to start again.
+                x += 1
+        except IndexError:
             placeholderList.append([obj[i][0], obj[i][1], obj[i][2], obj[i][3]]) # each element gets appended to the empty list until you
-            daysDict[str(x)] = [elt for elt in placeholderList] # have all the elements of a single day, which the list gets added to a dict keyed for that day
-            placeholderList.clear() # list is cleared to start again.
-            x += 1
+            daysDict[str(x)] = [elt for elt in placeholderList]
     return daysDict # This will return a dictionary coded from 0:7 that will store all of the individual days of data for a data type.
 
 def sort_week_from_today():
@@ -446,33 +466,24 @@ def display_week(data_types, unit):
     return week_list
 
 def current_data(data_type, unit):
-    temperature_data = sql_unformatted_by_date(con, data_type) # Grabs all temp data for a week.
-    data_standard_format = data_list(temperature_data, data_type, unit) # Formats it
-    print(data_standard_format[0])
-    print(data_standard_format[1])
-    print(data_standard_format[len(data_standard_format)-1])
-    print(len(data_standard_format))
+    current_datas = sql_unformatted_by_date(con, data_type) # Grabs all temp data for a week.
+    data_standard_format = data_list(current_datas, data_type, unit) # Formats it right.
     data_by_day = sort_24(data_standard_format)
-    print(data_by_day['0'])
-    print(len(data_by_day))
-    revised = len(data_by_day)
-    print(data_by_day[str(revised-7)])
-    print(str(len(data_by_day)) + "data_by_day")
-    # print(data_by_day)
-    last_7 = len(data_by_day) - 7
-    print(last_7)
+    print(str(len(data_by_day)) + "LENGTH")
+    last_7 = int(len(data_by_day)) - 7 # This needs to be around here to get all.
+    print(str(last_7)+ "LENGTH") 
     dict_of_dicts = {}
     dict_of_dicts.clear()
     for i in range(7):
+        print(str(last_7 + i))
         dict_of_dicts[str(i)] = data_by_day[str(last_7 + i)]
     return dict_of_dicts # works :/
 
+def catch_api_error(seven_days_unprocessed):
+    dayNums = [seven_days_unprocessed[elt][0][2][8:10] for elt in seven_days_unprocessed] # list of keys
+    print(dayNums)
 
 
-
-    
-    
-    return dict_of_dicts
 
 def time_right_now():
     date, time, day = date_time_2()
@@ -485,8 +496,7 @@ def time_right_now():
         time_rn = str(int(time.split(':')[0]))
         return time_rn
 
-
-
 def startup(): # This is a simulated main loop. This will actually go into the qt application via importing this file and calling startup there.
     user = user_startup() # __init__ user object
     data_pull(user.get_weather_data) # Pulls and stores data from current time
+
