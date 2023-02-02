@@ -74,26 +74,35 @@ class AnotherWindow(QWidget):
         precipPer_rn = str(precipPer_7days_24_extend[day_no][time_rn][3] + "%")
         precipTot_rn = str(precipTot_7days_24_extend[day_no][time_rn][3] + "cm")
         
+        
 
         vert1 = QVBoxLayout()
         horz1 = QHBoxLayout()
         vert2 = QVBoxLayout()
         grid1 = QGridLayout()
 
-        vert1.addLayout(horz1) # Main strip containing top box, graph, bottomlabel
-        horz1.addLayout(vert2) # This a vertical and a grid, which will house most of the info.
-        horz1.addLayout(grid1)
+        horz1.addLayout(vert1) # Main strip containing top box, graph, bottomlabel
+        vert1.addLayout(grid1) # This a vertical and a grid, which will house most of the info.
+        horz1.addLayout(vert2)
 
         dayLabel = QLabel(f"{dataName}")
         dayLabel.setFont(QFont('Arial', 12))
-
+        dayLabel.setStyleSheet(
+            "margin-right: 3px;"
+            "margin-bottom: 0px;"
+        )
+        grid1.setVerticalSpacing(3)
+        grid1.setHorizontalSpacing(3)
         currentTemp = QLabel(f"{temp_rn}")
         currentTemp.setFont(QFont('Arial', 21))
         currentTemp.setStyleSheet(
             "color: white;"
+            "margin-right: 3px;"
+            "margin-top: 0px;"
         )
-        vert2.addWidget(dayLabel)
-        vert2.addWidget(currentTemp)
+
+        grid1.addWidget(dayLabel, 0, 0, 1, 1)
+        grid1.addWidget(currentTemp, 1, 0, 2, 1)
 
         windLabel = QLabel("Wind")
         windLabel.setFont(QFont('Arial', 10))
@@ -113,14 +122,21 @@ class AnotherWindow(QWidget):
         currentPrecipTotal = QLabel(f"{precipTot_rn}")
         currentPrecipTotal.setFont(QFont('Arial', 10))
         
-        grid1.addWidget(windLabel,0,0)
-        grid1.addWidget(currentWind,1,0)
-        grid1.addWidget(currentWindDirection,2,0)
-        grid1.addWidget(currentSkycover,0,1)
-        grid1.addWidget(currentPrecipTotal, 1,1)
-        grid1.addWidget(currentPrecipPercent, 2,1)
+        grid1.addWidget(windLabel,0, 2, 1, 1)
+        grid1.addWidget(currentWind, 1, 2, 1, 1)
+        grid1.addWidget(currentWindDirection,2,2,1,1)
+        grid1.addWidget(currentSkycover,0,3,1,1)
+        grid1.addWidget(currentPrecipTotal, 1,3,1,1)
+        grid1.addWidget(currentPrecipPercent, 2,3,1,1)
         
-
+        alertLabel = QLabel("Alerts")
+        alertLabel.setFont(QFont('Arial', 10))
+        alertLabel.setStyleSheet(
+            "color: green;"
+            "background-color: rgb(127, 255, 212);"
+        )
+        alertLabel.setAlignment(QtCore.Qt.AlignHCenter)
+        vert2.addWidget(alertLabel)
 
         
 
@@ -139,8 +155,8 @@ class AnotherWindow(QWidget):
         
         # self.label = QLabel("Another Window")
         # layout.addWidget(self.label)
-        self.setLayout(vert1)
-        horz1.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
+        self.setLayout(horz1)
+        grid1.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
 
     def center(self):
         qr = self.frameGeometry()
@@ -178,10 +194,6 @@ class hoverLabel(QLabel):
         # once leave label, check if mouse is still ontop of window elements, if so do nothing, else: close?
         self.w.close()
         self.w = None 
-
-
-
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
