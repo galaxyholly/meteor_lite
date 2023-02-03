@@ -1,5 +1,5 @@
 from PySide6 import QtCore
-from PySide6.QtCore import Qt, QPoint
+from PySide6.QtCore import Qt, QPoint, Signal
 from PySide6.QtWidgets import * # QApplication, QMainWindow, QLabel, QWidget, QPushButton, QGridLayout
 from PySide6.QtGui import *
 from weatherGetter import *
@@ -9,14 +9,14 @@ import sys
 startup()
 
 week_list = sort_week_from_today()
-print(str(week_list) + "WEEKLIST")
+
 max_T = display_week(data_types[2], "C")
 min_T = display_week(data_types[3], "C")
 
 
 temp_7days_24 = current_data('temperature', 'C')
 temp_7days_24_extend = extend_hours(temp_7days_24)
-
+print(str(week_list) + "WEEKLIST")
 
 # print(temp_7days_24_extend['0'])
 # for item in temp_7days_24_extend:
@@ -35,6 +35,11 @@ precipPer_7days_24 = current_data('probabilityOfPrecipitation', '%')
 precipPer_7days_24_extend= extend_hours(precipPer_7days_24)
 precipTot_7days_24 = current_data('quantitativePrecipitation', 'cm')
 precipTot_7days_24_extend = extend_hours(precipTot_7days_24)
+vis_7days_24 = current_data('visibility', '%')
+vis_7days_24_extend = extend_hours(vis_7days_24)
+humid_7days_24 = current_data('quantitativePrecipitation', 'cm')
+humid_7days_24_extend = extend_hours(humid_7days_24)
+
 
 mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
 mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
@@ -57,6 +62,7 @@ class AnotherWindow(QWidget):
     # Is a QWidget. If it has no parent, it will appear as a free floating window.
     def __init__(self, dataName):
         super().__init__()
+
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
         self.day = dataName # Is just the name
@@ -73,14 +79,21 @@ class AnotherWindow(QWidget):
         windDir_rn = str(winddir_7days_24_extend[day_no][time_rn][3] + "°")
         precipPer_rn = str(precipPer_7days_24_extend[day_no][time_rn][3] + "%")
         precipTot_rn = str(precipTot_7days_24_extend[day_no][time_rn][3] + "cm")
+        try:
+            vis_rn = str(vis_7days_24_extend[day_no][time_rn][3] + "%")
+        except KeyError:
+            vis_rn = "No Data"
+        humid_rn = str(humid_7days_24_extend[day_no][time_rn][3] + "%")
         
         
-
+        verticalAlertOver = QVBoxLayout()
+        verticalAlertOver.setContentsMargins(0,0,0,0)
         vert1 = QVBoxLayout()
         horz1 = QHBoxLayout()
         vert2 = QVBoxLayout()
         grid1 = QGridLayout()
 
+        verticalAlertOver.addLayout(horz1)
         horz1.addLayout(vert1) # Main strip containing top box, graph, bottomlabel
         vert1.addLayout(grid1) # This a vertical and a grid, which will house most of the info.
         horz1.addLayout(vert2)
@@ -91,8 +104,8 @@ class AnotherWindow(QWidget):
             "margin-right: 3px;"
             "margin-bottom: 0px;"
         )
-        grid1.setVerticalSpacing(3)
-        grid1.setHorizontalSpacing(3)
+        grid1.setVerticalSpacing(0)
+        grid1.setHorizontalSpacing(0)
         currentTemp = QLabel(f"{temp_rn}")
         currentTemp.setFont(QFont('Arial', 21))
         currentTemp.setStyleSheet(
@@ -116,27 +129,46 @@ class AnotherWindow(QWidget):
         currentSkycover = QLabel(f"{skyCover_rn}")
         currentSkycover.setFont(QFont('Arial', 10))
 
+        currentPrecipLabel = QLabel("Precip")
+        currentPrecipLabel.setFont(QFont('Arial', 10))
+
         currentPrecipPercent = QLabel(f"{precipPer_rn}")
         currentPrecipPercent.setFont(QFont('Arial', 10))
 
         currentPrecipTotal = QLabel(f"{precipTot_rn}")
         currentPrecipTotal.setFont(QFont('Arial', 10))
+
+        currentVisLabel = QLabel("Vis")
+        currentVisLabel.setFont(QFont('Arial', 10))
+
+        currentVis = QLabel(f"{vis_rn}")
+        currentVis.setFont(QFont('Arial', 10))
+
+        currentHumid = QLabel(f"{humid_rn}")
+        currentHumid.setFont(QFont('Arial', 10))
         
         grid1.addWidget(windLabel,0, 2, 1, 1)
         grid1.addWidget(currentWind, 1, 2, 1, 1)
         grid1.addWidget(currentWindDirection,2,2,1,1)
-        grid1.addWidget(currentSkycover,0,3,1,1)
+        grid1.addWidget(currentPrecipLabel, 0,3,1,1)
         grid1.addWidget(currentPrecipTotal, 1,3,1,1)
         grid1.addWidget(currentPrecipPercent, 2,3,1,1)
-        
-        alertLabel = QLabel("Alerts")
-        alertLabel.setFont(QFont('Arial', 10))
-        alertLabel.setStyleSheet(
+        grid1.addWidget(currentVisLabel, 0, 4, 1, 1)
+        grid1.addWidget(currentVis, 1, 4, 1, 1)
+        grid1.addWidget(currentHumid, 2, 4, 1, 1)
+        grid1.addWidget(currentSkycover,0, 5, 1, 1)
+        grid1.setSpacing(5)
+        grid1.setContentsMargins(5,5,5,5)
+
+        self.alertLabel = QLabel("Alerts\n" + "lolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\nlolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\nlolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\n")
+        self.alertLabel.setFont(QFont('Arial', 10))
+        self.alertLabel.setStyleSheet(
             "color: green;"
             "background-color: rgb(127, 255, 212);"
         )
-        alertLabel.setAlignment(QtCore.Qt.AlignHCenter)
-        vert2.addWidget(alertLabel)
+        self.alertLabel.setAlignment(QtCore.Qt.AlignHCenter)
+        verticalAlertOver.addWidget(self.alertLabel)
+        self.alertLabel.hide()
 
         
 
@@ -155,8 +187,13 @@ class AnotherWindow(QWidget):
         
         # self.label = QLabel("Another Window")
         # layout.addWidget(self.label)
-        self.setLayout(horz1)
+        self.setLayout(verticalAlertOver)
         grid1.setAlignment(QtCore.Qt.AlignTop | QtCore.Qt.AlignLeft)
+
+    def showAlerts(self):
+        self.alertLabel.show()
+        self.adjustSize()
+
 
     def center(self):
         qr = self.frameGeometry()
@@ -172,21 +209,35 @@ class AnotherWindow(QWidget):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
+    
+            
 
     
 
 class hoverLabel(QLabel):
+
     def __init__(self, stuff, day, parent=None):
         super(hoverLabel, self).__init__(parent)
         self.dayData = day
         self.stuff = stuff
         self.setText(stuff)
+        self.n_times_clicked = 0
+        self.setContentsMargins(0,0,0,0)
+
+    def mousePressEvent(self, e):
+        if self.n_times_clicked == 0:
+            self.w.alertLabel.show()
+            self.n_times_clicked += 1
+        elif self.n_times_clicked == 1:
+            self.w.alertLabel.hide()
+            self.n_times_clicked -= 1
 
     def enterEvent(self, QEvent):
         # here the code for mouse hover
         self.w = AnotherWindow(self.dayData)
         self.w.setGeometry(1920, 30, 400, 75)
         self.w.show()
+
             
     def leaveEvent(self, QEvent):
         # here the code for mouse leave - perhaps I need to look at the fact that the label is the parent to the window (maybe?) so I can 
@@ -194,6 +245,10 @@ class hoverLabel(QLabel):
         # once leave label, check if mouse is still ontop of window elements, if so do nothing, else: close?
         self.w.close()
         self.w = None 
+        
+            
+
+    
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -202,9 +257,11 @@ class MainWindow(QMainWindow):
         self.setWindowFlag(Qt.FramelessWindowHint)
         self.setWindowFlags(QtCore.Qt.Window | QtCore.Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
         self.setWindowTitle("MeteorLite")
-        self.setStyleSheet("border-radius: 25px;")
+        
         self.w = None
         self.setGeometry(1920, 0, 400, 30)
+        self.setContentsMargins(0,0,0,0)
+
 
         horizontalLabelHolder = QHBoxLayout()
 
@@ -241,9 +298,18 @@ class MainWindow(QMainWindow):
             "Sunday":self.SundayLabel
         }
 
+
+        
         tempsOrdered = [tempLabels[week_list[i]] for i in range(7)]
         tempLabelsAlign = [label.setAlignment(QtCore.Qt.AlignCenter) for label in tempsOrdered]
         tempLabelsAlign
+
+        
+        tempLabelsMargins = [label.setContentsMargins(0,0,0,0) for label in tempsOrdered]
+        tempLabelsMargins
+
+        stylesheetLabels = [label.setStyleSheet("") for label in tempsOrdered]
+        stylesheetLabels
 
         fontSet = [item.setFont(QFont('Arial', 8)) for item in tempsOrdered]
         fontSet
@@ -256,37 +322,40 @@ class MainWindow(QMainWindow):
         vert6.addWidget(tempsOrdered[5])
         vert7.addWidget(tempsOrdered[6])
 
-        self.button = QPushButton("C")
-        self.button.setFont(QFont('Arial',7))
-        self.button.setFixedSize(11,11)
-        self.button.setStyleSheet(
-            "border : 0px solid gray;"
-            "background-color: rgb(255,165,0);"
-            "border-radius: 3px;"
-            "margin-right: 1px;"
-            "color: rgb(19,19,19);"
-        )
-        vert8.addWidget(self.button)
-        self.button.clicked.connect(self.the_button_was_clicked)
+        # self.button = QPushButton("C")
+        # self.button.setFont(QFont('Arial',7))
+        # self.button.setFixedSize(11,11)
+        # self.button.setStyleSheet(
+        #     "border : 0px solid gray;"
+        #     "background-color: rgb(255,165,0);"
+        #     "border-radius: 2px;"
+        #     "color: rgb(19,19,19);"
+        # )
+        # vert8.addWidget(self.button)
+        # self.button.clicked.connect(self.the_button_was_clicked)
 
-        self.button2 = QPushButton("V")
-        self.button2.setFixedSize(11,11)
+        self.button2 = QPushButton("")
+        self.button2.setIcon(QIcon('icons8settings.png'))
+        # <a target="_blank" href="https://icons8.com/icon/83214/settings">Settings</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+
+        self.button2.setFixedSize(24,24)
         self.button2.setFont(QFont('Arial',7))
         self.button2.setStyleSheet(
             "border : 0px solid gray;"
-            "background-color: rgb(255,165,0);"
-            "border-radius: 3px;"
-            "margin-right: 1px;"
-            "color: rgb(19,19,19);"
+            "border-radius: 2px;"
+            "background-color: rgb(19,19,19);"
+            "color: red;"
         )
         vert8.addWidget(self.button2)
 
         widget = QWidget()
         widget.setLayout(horizontalLabelHolder)
-        horizontalLabelHolder.setContentsMargins(2,2,2,2)
+        horizontalLabelHolder.setContentsMargins(0,0,0,0)
         horizontalLabelHolder.setSpacing(0)
         self.setCentralWidget(widget)
         self.oldPos = self.pos()
+
+
     
     def the_button_was_clicked(self):
         if self.button.text() == "F":
@@ -352,6 +421,10 @@ class MainWindow(QMainWindow):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
+    
+    # def hoverLabelPress(self):
+    #     self.MondayLabel.w.silly()
+
 
 # Only need one per application
 app = QApplication(sys.argv)
@@ -362,6 +435,7 @@ app.setPalette(palette)
 
 # Creating a new widget, which will be the window
 w = MainWindow()
+
 w.show() # Windows are hidden by default
 
 # Starts the event loop
