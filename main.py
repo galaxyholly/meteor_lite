@@ -223,10 +223,12 @@ class hoverLabel(QLabel):
             self.w.alertLabel.hide()
             self.n_times_clicked -= 1
 
+            
     def enterEvent(self, QEvent):
         # here the code for mouse hover
         self.w = AnotherWindow(self.dayData)
         self.w.setGeometry(1920, 30, 400, 75)
+        self.w.setMaximumSize(400, 75)
         self.w.show()
 
             
@@ -234,6 +236,7 @@ class hoverLabel(QLabel):
         # here the code for mouse leave - perhaps I need to look at the fact that the label is the parent to the window (maybe?) so I can 
         # Find a way to set mouse pointer conditions to only close the window when it's out of the thing.
         # once leave label, check if mouse is still ontop of window elements, if so do nothing, else: close?
+        self.n_times_clicked = 0
         self.w.close()
         self.w = None 
         
@@ -250,9 +253,8 @@ class MainWindow(QMainWindow):
         self.setContentsMargins(0,0,0,0)
 
 
-        horizontalLabelHolder = QGridLayout()
+        horizontalLabelHolder = QHBoxLayout()
     
-
         vert1 = QVBoxLayout()
         vert2 = QVBoxLayout()
         vert3 = QVBoxLayout()
@@ -262,18 +264,17 @@ class MainWindow(QMainWindow):
         vert7 = QVBoxLayout()
         vert8 = QVBoxLayout()
 
-        # vertList = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
-        horizontalLabelHolder.addLayout(vert1, 0,0,1,2)
-        horizontalLabelHolder.addLayout(vert2, 0,2,1,4)
-        horizontalLabelHolder.addLayout(vert3, 0,4,1,6)
-        horizontalLabelHolder.addLayout(vert4, 0,6,1,8)
-        horizontalLabelHolder.addLayout(vert5, 0,8,1,10)
-        horizontalLabelHolder.addLayout(vert6, 0,10,1,12)
-        horizontalLabelHolder.addLayout(vert7, 0,12,1,14)
-        horizontalLabelHolder.addLayout(vert8, 0,14,1,15)
-
-
         
+
+        horizontalLabelHolder.addLayout(vert1)
+        horizontalLabelHolder.addLayout(vert2)
+        horizontalLabelHolder.addLayout(vert3)
+        horizontalLabelHolder.addLayout(vert4)
+        horizontalLabelHolder.addLayout(vert5)
+        horizontalLabelHolder.addLayout(vert6)
+        horizontalLabelHolder.addLayout(vert7)
+        horizontalLabelHolder.addLayout(vert8)
+
             
         self.MondayLabel = hoverLabel(f"M\n{mon_high}/{mon_low}", "Monday")
         self.TuesdayLabel = hoverLabel(f"T\n{tues_high}/{tues_low}", "Tuesday")
@@ -341,6 +342,7 @@ class MainWindow(QMainWindow):
         self.button_container = QWidget()
         self.button_container.setFixedSize(16,30)
         self.button_container.setContentsMargins(0,0,0,0)
+
         # self.button_container.setStyleSheet("background-color: red;")
         
 
@@ -351,14 +353,16 @@ class MainWindow(QMainWindow):
         self.button_container_layout.setContentsMargins(0,4,0,2)
          
         vert8.addWidget(self.button_container)
-        vert8.setSpacing(0)
-        vert8.setContentsMargins(0,0,0,0)
-        vert8.setAlignment(QtCore.Qt.AlignLeft)
+        vert8.setContentsMargins(0,0,3,0)
+
+
 
         widget = QWidget()
         widget.setLayout(horizontalLabelHolder)
         horizontalLabelHolder.setContentsMargins(0,0,0,0)
         horizontalLabelHolder.setSpacing(0)
+        # horizontalLabelHolder.setSpacing(5)
+        
         self.setCentralWidget(widget)
         self.oldPos = self.pos()
 
@@ -428,8 +432,6 @@ class MainWindow(QMainWindow):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
-    # def hoverLabelPress(self):
-    #     self.MondayLabel.w.silly()
 
 # Only need one per application
 app = QApplication(sys.argv)
