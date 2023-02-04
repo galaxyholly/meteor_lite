@@ -48,7 +48,6 @@ def date_time_2():
     
     return date, time, weekday_name, str(sql_final_date)
 
-
 data_types = [ # 26 dt's
         'temperature',
         'dewpoint',
@@ -77,8 +76,6 @@ data_types = [ # 26 dt's
         'twentyFootWindDirection',
         'grasslandFireDangerIndex'
     ]
-
-
 
 con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information inthe db.
 
@@ -134,7 +131,6 @@ def sql_get_test(con, table):
     for row in rows:
         print(row)
 
-
 def sql_make_unformatted_tables(con): # This will be run on startup. Creates time loss on very first time its run, after that it takes no time.
     cursorObj = con.cursor()
     for data_type in data_types:
@@ -177,8 +173,6 @@ def sql_unformatted_drop_table(con):
         cursorObj = con.cursor()
         cursorObj.execute(f'DROP TABLE {data_type};')
     con.commit()
-        
-
     # cursorObj = con.cursor()
     # cursorObj.execute('create table if not exists data(id integer PRIMARY KEY, date text, 01 text,latitude integer, longitude integer, gridX integer, gridY integer, office text, date text, time text)')
 
@@ -243,7 +237,6 @@ def get_ip_coords_points(): # Request as much as needed.
     ip_coords_points= [str(ip_coords[0]), ip_coords[1], ip_coords[2], gridX, gridY, office]
     return ip_coords_points
 
-
 def user_startup(): # Startup will check
     con = sqlite3.connect("meteorlite.db") # This is the very first runtime task. Next step is to check if there's any information in the db.
     sql_startup(con) # This function makes a table only if it does not already exist.
@@ -291,8 +284,6 @@ def data_pull(user_weather_data):
     weather_data = user_weather_data()
     sql_make_unformatted_tables(con) # This is the creation function for the raw data tables.
     sql_unformatted_add_test(con, weather_data) # This function intakes the weather data and stores it all.
-
-
 
 def extend_hours(obj): #obj is a dict with 7 days worth of datapoints, separated by numbers (as the keys) starting from 0, ending in 6.
     dict_7_days = {} # This initializes what will be the final dictionary containing 7 dictionaries each with 24 datapoints (or close)
@@ -626,6 +617,8 @@ def extend_hours(obj): #obj is a dict with 7 days worth of datapoints, separated
  
     return dict_7_days
 
+def trim_dataset(obj): # This will be a simple func that takes the dictionary, orders it by date, grabs 7, junks the rest.
+    pass
 
 @functimer            
 def data_list(user_weather_data, data_type, data_unit): # returns the lists of value pairs for each data type ( a list with lists[[datetime, value],[datetime,value]])
@@ -686,8 +679,6 @@ def catch_api_error(seven_days_unprocessed):
     dayNums = [seven_days_unprocessed[elt][0][2][8:10] for elt in seven_days_unprocessed] # list of keys
     print(dayNums)
 
-
-
 def time_right_now():
     date, time, day, sql_time = date_time_2()
     print(time)
@@ -713,7 +704,7 @@ def startup(): # This is a simulated main loop. This will actually go into the q
 # print(precipPer_7days_24['5'])
 # print("\n")
 # print(precipPer_7days_24['6'])
-# print("\n")
+# print("\n") 
 
 # precipPer_7days_24_extend = extend_hours(precipPer_7days_24)
 
@@ -732,7 +723,7 @@ def startup(): # This is a simulated main loop. This will actually go into the q
 # print("\n")
 # print(precipPer_7days_24_extend['6'])
 
-print(sql_unformatted_by_date(con, 'visibility'))
+# print(sql_unformatted_by_date(con, 'visibility'))
 
 
 # time_rn = time_right_now()

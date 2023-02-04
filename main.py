@@ -13,17 +13,9 @@ week_list = sort_week_from_today()
 max_T = display_week(data_types[2], "C")
 min_T = display_week(data_types[3], "C")
 
-
 temp_7days_24 = current_data('temperature', 'C')
 temp_7days_24_extend = extend_hours(temp_7days_24)
 print(str(week_list) + "WEEKLIST")
-
-# print(temp_7days_24_extend['0'])
-# for item in temp_7days_24_extend:
-#     for subitem in temp_7days_24_extend[item]:
-#         print(temp_7days_24_extend[item][subitem])
-
-
 
 wind_7days_24 = current_data('windSpeed', 'kph')
 wind_7days_24_extend = extend_hours(wind_7days_24)
@@ -39,7 +31,6 @@ vis_7days_24 = current_data('visibility', '%')
 vis_7days_24_extend = extend_hours(vis_7days_24)
 humid_7days_24 = current_data('quantitativePrecipitation', 'cm')
 humid_7days_24_extend = extend_hours(humid_7days_24)
-
 
 mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
 mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
@@ -113,6 +104,10 @@ class AnotherWindow(QWidget):
             "margin-right: 3px;"
             "margin-top: 0px;"
         )
+
+        # anotherWidgetList = [windLabel, currentWind, currentWindDirection, currentSkycover, currentPrecipLabel, currentPrecipPercent, currentPrecipTotal, currentVisLabel, currentVis, currentHumid]
+        # anotherWidgetFont = [object.setFont(QFont('Arial',10)) for object in anotherWidgetList]
+        # anotherWidgetFont
 
         grid1.addWidget(dayLabel, 0, 0, 1, 1)
         grid1.addWidget(currentTemp, 1, 0, 2, 1)
@@ -210,10 +205,6 @@ class AnotherWindow(QWidget):
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
     
-            
-
-    
-
 class hoverLabel(QLabel):
 
     def __init__(self, stuff, day, parent=None):
@@ -246,10 +237,6 @@ class hoverLabel(QLabel):
         self.w.close()
         self.w = None 
         
-            
-
-    
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -263,7 +250,8 @@ class MainWindow(QMainWindow):
         self.setContentsMargins(0,0,0,0)
 
 
-        horizontalLabelHolder = QHBoxLayout()
+        horizontalLabelHolder = QGridLayout()
+    
 
         vert1 = QVBoxLayout()
         vert2 = QVBoxLayout()
@@ -274,11 +262,18 @@ class MainWindow(QMainWindow):
         vert7 = QVBoxLayout()
         vert8 = QVBoxLayout()
 
-        vertList = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
+        # vertList = [vert1, vert2, vert3, vert4, vert5, vert6, vert7, vert8]
+        horizontalLabelHolder.addLayout(vert1, 0,0,1,2)
+        horizontalLabelHolder.addLayout(vert2, 0,2,1,4)
+        horizontalLabelHolder.addLayout(vert3, 0,4,1,6)
+        horizontalLabelHolder.addLayout(vert4, 0,6,1,8)
+        horizontalLabelHolder.addLayout(vert5, 0,8,1,10)
+        horizontalLabelHolder.addLayout(vert6, 0,10,1,12)
+        horizontalLabelHolder.addLayout(vert7, 0,12,1,14)
+        horizontalLabelHolder.addLayout(vert8, 0,14,1,15)
 
 
-        addVert = [horizontalLabelHolder.addLayout(obj) for obj in vertList]
-        addVert
+        
             
         self.MondayLabel = hoverLabel(f"M\n{mon_high}/{mon_low}", "Monday")
         self.TuesdayLabel = hoverLabel(f"T\n{tues_high}/{tues_low}", "Tuesday")
@@ -311,7 +306,7 @@ class MainWindow(QMainWindow):
         stylesheetLabels = [label.setStyleSheet("") for label in tempsOrdered]
         stylesheetLabels
 
-        fontSet = [item.setFont(QFont('Arial', 8)) for item in tempsOrdered]
+        fontSet = [item.setFont(QFont('Gill Sans', 8)) for item in tempsOrdered]
         fontSet
 
         vert1.addWidget(tempsOrdered[0])
@@ -322,31 +317,43 @@ class MainWindow(QMainWindow):
         vert6.addWidget(tempsOrdered[5])
         vert7.addWidget(tempsOrdered[6])
 
-        # self.button = QPushButton("C")
-        # self.button.setFont(QFont('Arial',7))
-        # self.button.setFixedSize(11,11)
-        # self.button.setStyleSheet(
-        #     "border : 0px solid gray;"
-        #     "background-color: rgb(255,165,0);"
-        #     "border-radius: 2px;"
-        #     "color: rgb(19,19,19);"
-        # )
-        # vert8.addWidget(self.button)
+        
+
+
+
+
+        self.button = QPushButton("")
+        self.button.setIcon(QIcon('icons8settings.png'))
+        self.button.setFixedSize(12,12)
+        self.button.setStyleSheet(
+            "border : 0px solid gray;"
+        )
         # self.button.clicked.connect(self.the_button_was_clicked)
 
         self.button2 = QPushButton("")
-        self.button2.setIcon(QIcon('icons8settings.png'))
+        self.button2.setIcon(QIcon('icons8-expand-arrow-24.png'))
         # <a target="_blank" href="https://icons8.com/icon/83214/settings">Settings</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
-
-        self.button2.setFixedSize(24,24)
-        self.button2.setFont(QFont('Arial',7))
+        self.button2.setFixedSize(12,12)
         self.button2.setStyleSheet(
             "border : 0px solid gray;"
-            "border-radius: 2px;"
-            "background-color: rgb(19,19,19);"
-            "color: red;"
         )
-        vert8.addWidget(self.button2)
+
+        self.button_container = QWidget()
+        self.button_container.setFixedSize(16,30)
+        self.button_container.setContentsMargins(0,0,0,0)
+        # self.button_container.setStyleSheet("background-color: red;")
+        
+
+        self.button_container_layout = QVBoxLayout(self.button_container)
+        self.button_container_layout.addWidget(self.button)
+        self.button_container_layout.addWidget(self.button2)
+        self.button_container_layout.setSpacing(0)
+        self.button_container_layout.setContentsMargins(0,4,0,2)
+         
+        vert8.addWidget(self.button_container)
+        vert8.setSpacing(0)
+        vert8.setContentsMargins(0,0,0,0)
+        vert8.setAlignment(QtCore.Qt.AlignLeft)
 
         widget = QWidget()
         widget.setLayout(horizontalLabelHolder)
@@ -421,10 +428,8 @@ class MainWindow(QMainWindow):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = e.globalPosition().toPoint()
         print("wow")
-    
     # def hoverLabelPress(self):
     #     self.MondayLabel.w.silly()
-
 
 # Only need one per application
 app = QApplication(sys.argv)
