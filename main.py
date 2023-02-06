@@ -31,6 +31,8 @@ vis_7days_24 = current_data('visibility', '%')
 vis_7days_24_extend = extend_hours(vis_7days_24)
 humid_7days_24 = current_data('quantitativePrecipitation', 'cm')
 humid_7days_24_extend = extend_hours(humid_7days_24)
+dew_7days_24 = current_data('dewpoint', 'C')
+dew_7days_24_extend = extend_hours(dew_7days_24)
 
 mon_high = max_T[week_list.index('Monday')][0][3].split(".")[0]
 mon_low = min_T[week_list.index('Monday')][0][3].split(".")[0]
@@ -75,6 +77,7 @@ class AnotherWindow(QWidget):
         except KeyError:
             vis_rn = "No Data"
         humid_rn = str(humid_7days_24_extend[day_no][time_rn][3] + "%")
+        dew_rn = str(dew_7days_24_extend[day_no][time_rn][3] + "°")
         
         
         verticalAlertOver = QVBoxLayout()
@@ -90,57 +93,93 @@ class AnotherWindow(QWidget):
         horz1.addLayout(vert2)
 
         dayLabel = QLabel(f"{dataName}")
-        dayLabel.setFont(QFont('Arial', 12))
+        dayLabel.setFont(QFont('Gill Sans', 12))
         dayLabel.setStyleSheet(
             "margin-right: 3px;"
             "margin-bottom: 0px;"
         )
+
         grid1.setVerticalSpacing(0)
-        grid1.setHorizontalSpacing(0)
+        grid1.setHorizontalSpacing(10)
+
         currentTemp = QLabel(f"{temp_rn}")
-        currentTemp.setFont(QFont('Arial', 21))
+        currentTemp.setFont(QFont('Gill Sans', 21))
         currentTemp.setStyleSheet(
             "color: white;"
             "margin-right: 3px;"
             "margin-top: 0px;"
         )
 
+
+
         # anotherWidgetList = [windLabel, currentWind, currentWindDirection, currentSkycover, currentPrecipLabel, currentPrecipPercent, currentPrecipTotal, currentVisLabel, currentVis, currentHumid]
         # anotherWidgetFont = [object.setFont(QFont('Arial',10)) for object in anotherWidgetList]
         # anotherWidgetFont
 
-        grid1.addWidget(dayLabel, 0, 0, 1, 1)
-        grid1.addWidget(currentTemp, 1, 0, 2, 1)
+        
 
         windLabel = QLabel("Wind")
-        windLabel.setFont(QFont('Arial', 10))
+        windLabel.setFont(QFont('Gill Sans', 10))
 
         currentWind = QLabel(f"{windSpd_rn}")
-        currentWind.setFont(QFont('Arial', 10))
+        currentWind.setFont(QFont('Gill Sans', 10))
 
         currentWindDirection = QLabel(f"{windDir_rn}")
-        currentWindDirection.setFont(QFont('Arial', 10))
+        currentWindDirection.setFont(QFont('Gill Sans', 10))
 
         currentSkycover = QLabel(f"{skyCover_rn}")
-        currentSkycover.setFont(QFont('Arial', 10))
+        currentSkycover.setFont(QFont('Gill Sans', 10))
 
-        currentPrecipLabel = QLabel("Precip")
-        currentPrecipLabel.setFont(QFont('Arial', 10))
+        currentPrecipLabel = QLabel("Precipitation")
+        currentPrecipLabel.setFont(QFont('Gill Sans', 10))
 
         currentPrecipPercent = QLabel(f"{precipPer_rn}")
-        currentPrecipPercent.setFont(QFont('Arial', 10))
+        currentPrecipPercent.setFont(QFont('Gill Sans', 10))
 
         currentPrecipTotal = QLabel(f"{precipTot_rn}")
-        currentPrecipTotal.setFont(QFont('Arial', 10))
+        currentPrecipTotal.setFont(QFont('Gill Sans', 10))
 
-        currentVisLabel = QLabel("Vis")
-        currentVisLabel.setFont(QFont('Arial', 10))
+        currentVisLabel = QLabel("Visibility")
+        currentVisLabel.setFont(QFont('Gill Sans', 10))
 
         currentVis = QLabel(f"{vis_rn}")
-        currentVis.setFont(QFont('Arial', 10))
+        currentVis.setFont(QFont('Gill Sans', 10))
+
+        humidLabel = QLabel("Humidity")
+        humidLabel.setFont(QFont('Gill Sans', 10))
 
         currentHumid = QLabel(f"{humid_rn}")
-        currentHumid.setFont(QFont('Arial', 10))
+        currentHumid.setFont(QFont('Gill Sans', 10))
+
+        currentDewpoint = QLabel(f"{dew_rn}")
+        currentDewpoint.setFont(QFont('Gill Sans', 10))
+
+        self.labelContainerTemps = QWidget()
+        self.labelContainerTempsLayout = QGridLayout(self.labelContainerTemps)
+        self.labelContainerTempsLayout.addWidget(dayLabel)
+        self.labelContainerTempsLayout.addWidget(currentTemp)
+        self.labelContainerTemps.setStyleSheet(
+            "background-color: green;"
+            "border-radius: 3px;"
+        )
+        
+        self.labelContainerTemps.setContentsMargins(0,0,0,0)
+        self.labelContainerTempsLayout.setVerticalSpacing(10)
+
+        grid1.addWidget(self.labelContainerTemps, 0, 0, 3, 1)
+        # grid1.addWidget(currentTemp, 1, 0, 2, 1)
+
+
+
+        # self.button_container = QWidget()
+        # self.button_container.setFixedSize(16,30)
+        # self.button_container.setContentsMargins(0,0,0,0)
+        # self.button_container_layout = QVBoxLayout(self.button_container)
+        # self.button_container_layout.addWidget(self.button)
+        # self.button_container_layout.addWidget(self.button2)
+        # self.button_container_layout.setSpacing(0)
+        # self.button_container_layout.setContentsMargins(0,4,0,2)
+
         
         grid1.addWidget(windLabel,0, 2, 1, 1)
         grid1.addWidget(currentWind, 1, 2, 1, 1)
@@ -150,18 +189,21 @@ class AnotherWindow(QWidget):
         grid1.addWidget(currentPrecipPercent, 2,3,1,1)
         grid1.addWidget(currentVisLabel, 0, 4, 1, 1)
         grid1.addWidget(currentVis, 1, 4, 1, 1)
-        grid1.addWidget(currentHumid, 2, 4, 1, 1)
-        grid1.addWidget(currentSkycover,0, 5, 1, 1)
-        grid1.setSpacing(5)
+        grid1.addWidget(currentSkycover, 2, 4, 1, 1)
+        grid1.addWidget(humidLabel, 0, 5, 1, 1)
+        grid1.addWidget(currentHumid, 1, 5, 1, 1)
+        grid1.addWidget(currentDewpoint, 2, 5, 1, 1)
+        grid1.setVerticalSpacing(5)
         grid1.setContentsMargins(5,5,5,5)
 
         self.alertLabel = QLabel("Alerts\n" + "lolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\nlolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\nlolololoolollolololoolollolololoolollolololoolollolololoolollolololoolol\n")
-        self.alertLabel.setFont(QFont('Arial', 10))
+        self.alertLabel.setFont(QFont('Gill Sans', 10))
         self.alertLabel.setStyleSheet(
             "color: green;"
             "background-color: rgb(127, 255, 212);"
         )
         self.alertLabel.setAlignment(QtCore.Qt.AlignHCenter)
+        self.alertLabel.setMaximumSize(400, 1500)
         verticalAlertOver.addWidget(self.alertLabel)
         self.alertLabel.hide()
 

@@ -604,7 +604,7 @@ def extend_hours(obj): #obj is a dict with 7 days worth of datapoints, separated
                     new_hour = ("0" + str(current_hour))# Will just add each larger i to a copy of the base point hour.
                     dict_7_days[str(day_counter)][str(new_hour)] = point.copy()
                     
-                elif current_hour > 10:
+                elif current_hour >= 10:
                     print("SPECELSE")
                     new_hour = str(current_hour)
                     dict_7_days[str(day_counter)][str(new_hour)] = point.copy()
@@ -689,7 +689,7 @@ def startup(): # This is a simulated main loop. This will actually go into the q
     user = user_startup() # __init__ user object
     data_pull(user.get_weather_data) # Pulls and stores data from current time
 
-# precipPer_7days_24 = current_data('visibility', '%') 
+precipPer_7days_24 = current_data('temperature', '%') 
 
 # print(precipPer_7days_24['0'])
 # print("\n")
@@ -706,22 +706,22 @@ def startup(): # This is a simulated main loop. This will actually go into the q
 # print(precipPer_7days_24['6'])
 # print("\n") 
 
-# precipPer_7days_24_extend = extend_hours(precipPer_7days_24)
+precipPer_7days_24_extend = extend_hours(precipPer_7days_24)
 
 
-# print(precipPer_7days_24_extend['0'])
-# print("\n")
-# print(precipPer_7days_24_extend['1'])
-# print("\n")
-# print(precipPer_7days_24_extend['2'])
-# print("\n")
-# print(precipPer_7days_24_extend['3'])
-# print("\n")
-# print(precipPer_7days_24_extend['4'])
-# print("\n")
-# print(precipPer_7days_24_extend['5'])
-# print("\n")
-# print(precipPer_7days_24_extend['6'])
+print(precipPer_7days_24_extend['0'])
+print("\n")
+print(precipPer_7days_24_extend['1'])
+print("\n")
+print(precipPer_7days_24_extend['2'])
+print("\n")
+print(precipPer_7days_24_extend['3'])
+print("\n")
+print(precipPer_7days_24_extend['4'])
+print("\n")
+print(precipPer_7days_24_extend['5'])
+print("\n")
+print(precipPer_7days_24_extend['6'])
 
 # print(sql_unformatted_by_date(con, 'visibility'))
 
