@@ -1,0 +1,21 @@
+settingsComboBox#unitSelector {
+    padding: 10px 0px 0px 0px;
+    border: 0px solid gray;
+    border-radius: 3px;
+    left: 10px;
+}
+
+settingsComboBox#unitSelector::drop-down {
+    border: 0px;
+}
+
+settingsComboBox#themeSelector {
+    padding: 10px 0px 0px 0px;
+    border: 0px solid gray;
+    border-radius: 3px;
+    left: 10px;
+}
+
+settingsComboBox#themeSelector::drop-down {
+    border: 0px;
+}
