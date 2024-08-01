@@ -317,17 +317,21 @@ def user_startup(): # Startup will check
         return user # ultimately all of these outcomes result in a db entry on a user object returned.
     else: # If there is a previous db entry, it must be checked against current IP to ensure the user is still in the same geo-location.
         print("else")
+        user_values = sql_get_last(con) # Start by getting the latest entry from the db. get ip, check if ip is same.
         current_ip = get_ip()
-        date, time, weekday, sql_time = date_time_2()
-        # print(user.get_weather_data()) this is here for diagnostic purposes
-        if date != user_values[8]: # if current date is not equal to db listed date, make a new entry with updated date.
-            print("if date != user_values[8]:")
-            next_id = user_values[0] + 1 # Since this is a new date, we need to denote a new access for forecast data. Id needs to be updated since a unique entry will be made.
-            new_date_entry = (next_id,user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7], date, time)
-            sql_insert(con, new_date_entry)
+        if current_ip == user_values[2]: # comparing the current ip to the last db entries ip. If ==, user object is init with the previous db info. 
+            print("if current_ip == user_values[2]:")
+            user = User(user_values[0],user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7], user_values[8], user_values[9])
+            date, time, weekday, sql_time = date_time_2()
+            # print(user.get_weather_data()) this is here for diagnostic purposes
+            if date != user_values[8]: # if current date is not equal to db listed date, make a new entry with updated date.
+                print("if date != user_values[8]:")
+                next_id = user_values[0] + 1 # Since this is a new date, we need to denote a new access for forecast data. Id needs to be updated since a unique entry will be made.
+                new_date_entry = (next_id,user_values[1],user_values[2],user_values[3],user_values[4],user_values[5],user_values[6],user_values[7], date, time)
+                sql_insert(con, new_date_entry)
+                return user
+            print("made it")
             return user
-        # print("made it")
-        # return user
         else: # If current ip is not last db entry ip, make a new entry.
             print("# If current ip is not last db entry ip, make a new entry.")
             ip, latitude, longitude, gridX, gridY, office = get_ip_coords_points()
