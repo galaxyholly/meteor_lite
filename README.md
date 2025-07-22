@@ -8,6 +8,10 @@ An ambitious early project that taught me valuable lessons about scope, complexi
 - Geographic auto-detection and multi-day forecasting
 - Always-on-top desktop widget design
 
+## Pics
+<img width="505" height="537" alt="image" src="https://github.com/user-attachments/assets/c202e5dd-1f43-4f21-96cc-4fcd0aaacdf3" />
+<img width="505" height="537" alt="image" src="https://github.com/user-attachments/assets/8ab40a15-519a-469f-89c9-ce6ed028b348" />
+
 ## What I Learned
 This project was **intentionally over-ambitious** for my skill level at the time. The complex time-parsing logic in `extend_hours()` became unwieldy, and the database architecture grew organically without proper planning.
 
