@@ -4,6 +4,8 @@ An ambitious early project that taught me valuable lessons about scope, complexi
 
 ## What I Attempted
 - Real-time weather dashboard with custom Qt GUI
+- Extensive database design with Sqlite3. Persistent data storage, manipulation, and display.
+- Custom graphing module written in QT
 - Complex time-series data processing from National Weather Service API
 - Geographic auto-detection and multi-day forecasting
 - Always-on-top desktop widget design
